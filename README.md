@@ -8,4 +8,3 @@
 | **Interest / motivation** | Interest scales show no strong condition differences. Practice motivation item is descriptive only: around 61% wanted more practice. | No clear motivational effect from PlotWise conditions. |
 | **Conceptual open response** | PlotWise lecture conditions, especially PC and PP, gave stronger conceptual explanations. This remains after controlling for prior knowledge. | PlotWise lecture may help students articulate conceptual relationships between slope and correlation. |
 | **Choose-r recognition** | Close to chance and fairly flat across conditions. | Better treated as a short recognition check, not a main learning outcome. |
-| **Outcome-family correlations** | Outcomes are related but not strongly enough to combine. Open response relates to prior knowledge and value estimation, but only weakly to add-points. | The assessments capture related but separable aspects of learning. |
