@@ -1,0 +1,797 @@
+---
+title: "Conceptual Questions Analysis"
+author: "Jiarong Feng"
+date: "2026-06-03"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+    code_folding: hide
+    theme: readable
+    df_print: paged
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+source("../utils/utils.R")
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(emmeans)
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5,
+  dpi = 150,
+  results = "asis"
+)
+
+theme_set(theme_plotwise())
+
+GROUP_LEVELS <- c("CC", "CP", "PC", "PP")
+GROUP_COLORS <- c(
+  "CC" = "#CC79A7",
+  "CP" = "#0072B2",
+  "PC" = "#D55E00",
+  "PP" = "#009E73"
+)
+
+find_first_file <- function(paths) {
+  hit <- paths[file.exists(paths)]
+  if (length(hit) == 0) return(NA_character_)
+  hit[[1]]
+}
+
+find_first_dir <- function(paths) {
+  hit <- paths[dir.exists(paths)]
+  if (length(hit) == 0) return(NA_character_)
+  hit[[1]]
+}
+
+pretty_table <- function(x, digits = 3) {
+  x |>
+    mutate(across(where(is.numeric), ~ round(.x, digits))) |>
+    kable(format = "html", escape = FALSE) |>
+    kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover", "condensed"))
+}
+
+fmt_p <- function(p) {
+  case_when(
+    is.na(p) ~ NA_character_,
+    p < .001 ~ "< .001",
+    TRUE ~ formatC(p, format = "f", digits = 3)
+  )
+}
+
+make_group_labels <- function(df) {
+  df |>
+    mutate(
+      group = factor(group, levels = GROUP_LEVELS),
+      lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+      practice_type = factor(practice_type, levels = c("Control", "PlotWise"))
+    )
+}
+
+mean_or_na <- function(x) {
+  if (all(is.na(x))) return(NA_real_)
+  mean(x, na.rm = TRUE)
+}
+
+model_table_lm <- function(model) {
+  coef(summary(model)) |>
+    as.data.frame() |>
+    rownames_to_column("term") |>
+    as_tibble() |>
+    rename(
+      estimate = Estimate,
+      std_error = `Std. Error`,
+      statistic = `t value`,
+      p_value = `Pr(>|t|)`
+    ) |>
+    mutate(p_value = fmt_p(p_value))
+}
+
+condition_estimates_lm <- function(model) {
+  # The models use lecture_type * practice_type, while group (CC/CP/PC/PP)
+  # is a derived label. Estimate the four cells from the model terms, then
+  # rebuild the condition label for display.
+  as.data.frame(emmeans(model, ~ lecture_type * practice_type)) |>
+    as_tibble() |>
+    mutate(
+      group = case_when(
+        lecture_type == "Control" & practice_type == "Control" ~ "CC",
+        lecture_type == "Control" & practice_type == "PlotWise" ~ "CP",
+        lecture_type == "PlotWise" & practice_type == "Control" ~ "PC",
+        lecture_type == "PlotWise" & practice_type == "PlotWise" ~ "PP",
+        TRUE ~ NA_character_
+      ),
+      group = factor(group, levels = GROUP_LEVELS)
+    ) |>
+    rename(
+      condition_mean = emmean,
+      se = SE,
+      lower_ci = lower.CL,
+      upper_ci = upper.CL
+    ) |>
+    select(group, lecture_type, practice_type, condition_mean, se, lower_ci, upper_ci) |>
+    arrange(group)
+}
+
+plot_condition_points <- function(df, y_var, y_label, title, subtitle = NULL) {
+  y_sym <- rlang::ensym(y_var)
+
+  summary_df <- df |>
+    group_by(group) |>
+    summarise(
+      mean_score = mean(!!y_sym, na.rm = TRUE),
+      se = sd(!!y_sym, na.rm = TRUE) / sqrt(sum(!is.na(!!y_sym))),
+      lower_ci = mean_score - 1.96 * se,
+      upper_ci = mean_score + 1.96 * se,
+      .groups = "drop"
+    ) |>
+    mutate(group = factor(group, levels = GROUP_LEVELS))
+
+  ggplot(df, aes(x = group, y = !!y_sym, color = group)) +
+    geom_jitter(width = 0.12, alpha = 0.55, size = 1.9) +
+    geom_pointrange(
+      data = summary_df,
+      aes(x = group, y = mean_score, ymin = lower_ci, ymax = upper_ci),
+      inherit.aes = FALSE,
+      color = "black",
+      linewidth = 0.7,
+      size = 0.8
+    ) +
+    scale_color_manual(values = GROUP_COLORS, drop = FALSE) +
+    labs(
+      title = title,
+      subtitle = subtitle,
+      x = "Condition",
+      y = y_label
+    ) +
+    theme_bw(base_size = 13) +
+    theme(legend.position = "none")
+}
+```
+
+# Overview
+
+This notebook analyzes the conceptual-question portion of the assessment. This section includes two forced-choice items and four open-ended text responses:
+
+- **Choose-strongest-r items**: participants choose which scatterplot has the stronger correlation.
+- **Switch X/Y questions**: participants explain what happens to correlation and slope when X and Y are swapped.
+- **Same/different questions**: participants describe how slope and correlation are similar and different.
+
+I treat these as a separate conceptual-question outcome family rather than combining them with value estimation or add-points performance. Value estimation and add-points are also assessment tasks, but they capture different kinds of understanding.
+
+# 1. Load data
+
+```{r load-data}
+data_derived_dir <- find_first_dir(c(
+  "../data/derived",
+  "data/derived",
+  "../../data/derived"
+))
+
+if (is.na(data_derived_dir)) {
+  stop("Could not find data/derived folder. Current working directory: ", getwd())
+}
+
+participant_file <- find_first_file(c(
+  file.path(data_derived_dir, "participant_condition_index.csv"),
+  file.path(data_derived_dir, "participant_outcomes.csv")
+))
+
+choose_item_file <- find_first_file(c(
+  file.path(data_derived_dir, "scored_choose_r_item_level.csv")
+))
+
+choose_participant_file <- find_first_file(c(
+  file.path(data_derived_dir, "scored_choose_r_participant_level.csv")
+))
+
+raw_text_file <- find_first_file(c(
+  file.path(data_derived_dir, "assessment_conceptual_text_long.csv"),
+  file.path(data_derived_dir, "assessment_connection_making_long.csv"),
+  file.path(data_derived_dir, "clean_item_level.csv")
+))
+
+coded_text_file <- find_first_file(c(
+  file.path(data_derived_dir, "conceptual_text_coding_sheet_coded.csv"),
+  file.path(data_derived_dir, "conceptual_questions_coding_sheet_coded.csv"),
+  file.path(data_derived_dir, "text_response_coding_sheet_coded.csv")
+))
+
+prior_knowledge_file <- find_first_file(c(
+  file.path(data_derived_dir, "prior_knowledge_coding_sheet_coded.csv"),
+  file.path(data_derived_dir, "prior_knowledge_coding_sheet.csv"),
+  file.path(data_derived_dir, "prior_knowledge_scores.csv")
+))
+
+participant_index <- read_csv(participant_file, show_col_types = FALSE) |>
+  make_group_labels() |>
+  select(any_of(c("participantId", "group", "lecture_type", "practice_type", "status", "percentComplete"))) |>
+  distinct()
+
+if (!is.na(choose_item_file)) {
+  choose_item <- read_csv(choose_item_file, show_col_types = FALSE) |>
+    make_group_labels()
+} else {
+  choose_item <- tibble()
+}
+
+if (!is.na(choose_participant_file)) {
+  choose_participant <- read_csv(choose_participant_file, show_col_types = FALSE) |>
+    make_group_labels()
+} else {
+  choose_participant <- tibble()
+}
+
+if (!is.na(prior_knowledge_file)) {
+  prior_item_raw <- read_csv(prior_knowledge_file, show_col_types = FALSE) |>
+    make_group_labels()
+
+  prior_item <- prior_item_raw |>
+    mutate(
+      score = suppressWarnings(as.numeric(score)),
+      concept_raw = if ("concept" %in% names(prior_item_raw)) concept else NA_character_,
+      response_id_raw = if ("responseId" %in% names(prior_item_raw)) responseId else NA_character_,
+      concept = case_when(
+        str_detect(str_to_lower(concept_raw), "correlation") ~ "correlation",
+        str_detect(str_to_lower(concept_raw), "slope") ~ "slope",
+        str_detect(str_to_lower(response_id_raw), "correlation") ~ "correlation",
+        str_detect(str_to_lower(response_id_raw), "slope") ~ "slope",
+        TRUE ~ NA_character_
+      )
+    ) |>
+    filter(concept %in% c("correlation", "slope"))
+
+  prior_participant <- prior_item |>
+    group_by(participantId, group, lecture_type, practice_type, concept) |>
+    summarise(prior_score = mean_or_na(score), .groups = "drop") |>
+    pivot_wider(
+      names_from = concept,
+      values_from = prior_score,
+      names_glue = "prior_{concept}_score"
+    ) |>
+    mutate(
+      prior_correlation_score = if_else(is.na(prior_correlation_score), NA_real_, prior_correlation_score),
+      prior_slope_score = if_else(is.na(prior_slope_score), NA_real_, prior_slope_score),
+      prior_total = prior_correlation_score + prior_slope_score
+    ) |>
+    arrange(group, participantId)
+} else {
+  prior_item <- tibble()
+  prior_participant <- tibble(
+    participantId = character(),
+    prior_correlation_score = double(),
+    prior_slope_score = double(),
+    prior_total = double()
+  )
+}
+
+tibble(
+  item = c(
+    "data_derived_dir",
+    "participant_file",
+    "choose_item_file",
+    "choose_participant_file",
+    "raw_text_file",
+    "coded_text_file",
+    "prior_knowledge_file"
+  ),
+  value = c(
+    data_derived_dir,
+    basename(participant_file),
+    if_else(is.na(choose_item_file), "not found", basename(choose_item_file)),
+    if_else(is.na(choose_participant_file), "not found", basename(choose_participant_file)),
+    if_else(is.na(raw_text_file), "not found", basename(raw_text_file)),
+    if_else(is.na(coded_text_file), "not found", basename(coded_text_file)),
+    if_else(is.na(prior_knowledge_file), "not found", basename(prior_knowledge_file))
+  )
+) |>
+  pretty_table()
+```
+
+## 1.1 Prior knowledge covariate
+
+Prior knowledge is included as a covariate in the models below. I sum the pre-study correlation-definition score and slope-definition score into one composite prior-knowledge score. This keeps the covariate simple and interpretable. The composite ranges from 0 to 2.
+
+```{r prior-knowledge-summary}
+if (exists("prior_participant") && nrow(prior_participant) > 0) {
+  prior_summary <- prior_participant |>
+    group_by(group) |>
+    summarise(
+      n_participants = sum(!is.na(prior_total)),
+      mean_prior_correlation = mean(prior_correlation_score, na.rm = TRUE),
+      mean_prior_slope = mean(prior_slope_score, na.rm = TRUE),
+      mean_prior_total = mean(prior_total, na.rm = TRUE),
+      sd_prior_total = sd(prior_total, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  prior_summary |> pretty_table()
+} else {
+  cat('<div class="note-box"><strong>Prior knowledge file not found.</strong> Models below are not adjusted for prior knowledge.</div>')
+}
+```
+
+# 2. Choose-strongest-r items
+
+There are two multiple-choice items in this section. Both ask which graph shows the stronger correlation. I score these by comparing the absolute value of the correlation shown in each graph label.
+
+```{r choose-r-check}
+if (nrow(choose_item) == 0) {
+  cat("Choose-r scored item file was not found. Run 02_parse_and_score_outcomes.Rmd first.\n")
+} else {
+  choose_item |>
+    distinct(trialId, parameters_leftLabel, parameters_rightLabel, correct_side, abs_r_left, abs_r_right) |>
+    arrange(trialId) |>
+    pretty_table()
+}
+```
+
+```{r choose-r-participant-summary}
+if (nrow(choose_participant) > 0) {
+  choose_summary <- choose_participant |>
+    group_by(group) |>
+    summarise(
+      n_participants = n(),
+      mean_pct_correct = mean(choose_r_pct_correct, na.rm = TRUE),
+      sd_pct_correct = sd(choose_r_pct_correct, na.rm = TRUE),
+      mean_score = mean(choose_r_score, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  choose_summary |> pretty_table()
+}
+```
+
+```{r choose-r-plot, fig.width=8, fig.height=5}
+if (nrow(choose_participant) > 0) {
+  plot_condition_points(
+    choose_participant,
+    choose_r_pct_correct,
+    "Proportion correct",
+    "Choose-strongest-r accuracy",
+    "Each point is one participant; black point/range shows condition mean ± 1.96 SE."
+  ) +
+    scale_y_continuous(limits = c(0, 1), labels = scales::percent_format(accuracy = 1))
+}
+```
+
+```{r choose-r-model}
+if (nrow(choose_participant) > 0) {
+  choose_model_data <- choose_participant |>
+    left_join(
+      prior_participant |> select(participantId, prior_correlation_score, prior_slope_score, prior_total),
+      by = "participantId"
+    )
+
+  m_choose <- lm(choose_r_pct_correct ~ lecture_type * practice_type + prior_total, data = choose_model_data)
+
+  cat("#### Condition estimates\n\n")
+  condition_estimates_lm(m_choose) |>
+    pretty_table()
+
+  cat("\n#### Model coefficients\n\n")
+  model_table_lm(m_choose) |>
+    pretty_table()
+}
+```
+
+```{r choose-r-interpretation, results='asis'}
+if (nrow(choose_participant) > 0) {
+  best_choose <- choose_summary |>
+    filter(mean_pct_correct == max(mean_pct_correct, na.rm = TRUE)) |>
+    arrange(group)
+
+  lowest_choose <- choose_summary |>
+    filter(mean_pct_correct == min(mean_pct_correct, na.rm = TRUE)) |>
+    arrange(group)
+
+  best_choose_groups <- paste(best_choose$group, collapse = "/")
+  lowest_choose_groups <- paste(lowest_choose$group, collapse = "/")
+  best_choose_mean <- first(best_choose$mean_pct_correct)
+  lowest_choose_mean <- first(lowest_choose$mean_pct_correct)
+
+  choose_lm_table <- model_table_lm(m_choose)
+
+  lecture_p <- choose_lm_table |> filter(term == "lecture_typePlotWise") |> pull(p_value)
+  practice_p <- choose_lm_table |> filter(term == "practice_typePlotWise") |> pull(p_value)
+  interaction_p <- choose_lm_table |> filter(term == "lecture_typePlotWise:practice_typePlotWise") |> pull(p_value)
+
+  cat(
+    '<div class="note-box"><strong>Interpretation: choose-strongest-r.</strong><br><br>',
+    'The choose-strongest-r items are useful as a quick recognition check, but there are only two items, so I would keep this section descriptive rather than making a strong condition-level claim. ',
+    'Accuracy is close to chance overall: the lowest mean is in <strong>', lowest_choose_groups,
+    '</strong> (', scales::percent(lowest_choose_mean, accuracy = 0.1),
+    ') and the highest mean is tied across <strong>', best_choose_groups,
+    '</strong> (', scales::percent(best_choose_mean, accuracy = 0.1),
+    '). In the prior-knowledge-adjusted model, neither the PlotWise lecture term (p = ', lecture_p,
+    ') nor the PlotWise practice term (p = ', practice_p,
+    ') shows a clear effect, and the interaction is also not clear (p = ', interaction_p,
+    '). This suggests that the recognition-based items are probably too few to be diagnostic on their own.',
+    '</div>'
+  )
+}
+```
+
+# 3. Open-ended text responses
+
+The four text-response questions are coded manually using a simple 0 / 0.5 / 1 rubric. This keeps the coding consistent with the prior-knowledge coding sheet.
+
+## 3.1 Rubric
+
+### Q1. Switching X and Y: correlation
+
+**Prompt:** A researcher has a correlation of .5 and a slope of .25. If they switched X and Y, what would happen to the correlation?
+
+- **1** = Clearly says the correlation stays the same / remains .5 / is unchanged when X and Y are switched.
+- **0.5** = Indicates the relationship or strength is the same, but the answer is vague or does not clearly name correlation.
+- **0** = Says the correlation changes, becomes reciprocal, changes sign, becomes slope, or gives an irrelevant/missing answer.
+
+### Q2. Switching X and Y: slope
+
+**Prompt:** What would happen to the slope?
+
+- **1** = Clearly says the slope changes when X and Y are switched, or says it becomes reciprocal/inverse because slope depends on which variable is on which axis / the units of X and Y.
+- **0.5** = Says slope would change, flip, or become different, but the explanation is vague and does not clearly describe the reciprocal/inverse relationship.
+- **0** = Says slope stays the same, confuses slope with correlation, or gives an irrelevant/missing answer.
+
+### Q3. Ways slope and correlation are the same
+
+**Prompt:** Please list as many ways slope and correlation are the same as you can think of.
+
+- **1** = Mentions at least one meaningful similarity, such as both describe the direction of a linear relationship, both can be positive/negative/zero, or both summarize association/trend between two variables.
+- **0.5** = Gives a vague but relevant similarity, such as both relate to a line/graph/relationship, without explaining direction or association clearly.
+- **0** = Says they are unrelated, gives only incorrect statements, or gives an irrelevant/missing answer.
+
+### Q4. Ways slope and correlation are different
+
+**Prompt:** Please list as many ways slope and correlation are different as you can think of.
+
+- **1** = Mentions at least one meaningful difference, such as correlation is standardized / bounded from -1 to 1 / unitless / about strength or tightness, while slope has units / depends on scale / describes rate of change or steepness.
+- **0.5** = Gives a vague but relevant difference, such as correlation is about relationship and slope is about steepness, without much detail.
+- **0** = Says they are the same, gives only incorrect statements, or gives an irrelevant/missing answer.
+
+## 3.2 Create or load text coding sheet
+
+```{r create-or-load-text-coding-sheet}
+TEXT_RESPONSE_IDS <- c(
+  "switch-question-response-a",
+  "switch-question-response-b",
+  "q-same",
+  "q-different"
+)
+
+QUESTION_LABELS <- c(
+  "switch-question-response-a" = "Switch X/Y: correlation",
+  "switch-question-response-b" = "Switch X/Y: slope",
+  "q-same" = "How slope and correlation are the same",
+  "q-different" = "How slope and correlation are different"
+)
+
+if (is.na(coded_text_file)) {
+  if (is.na(raw_text_file)) {
+    cat("No coded text file or raw text file was found. Expected a raw file such as clean_item_level.csv or a coded file such as conceptual_text_coding_sheet_coded.csv.\n")
+    text_item <- tibble()
+    text_participant <- tibble()
+  } else {
+    raw_text <- read_csv(raw_text_file, show_col_types = FALSE) |>
+      make_group_labels()
+
+    text_coding_sheet <- raw_text |>
+      filter(responseId %in% TEXT_RESPONSE_IDS) |>
+      mutate(
+        question_label = recode(responseId, !!!QUESTION_LABELS),
+        score = NA_real_,
+        coder_notes = NA_character_
+      ) |>
+      select(any_of(c(
+        "participantId",
+        "group",
+        "lecture_type",
+        "practice_type",
+        "trialId",
+        "responseId",
+        "question_label",
+        "responsePrompt",
+        "prompt",
+        "answer",
+        "score",
+        "coder_notes",
+        "duration",
+        "cleanedDuration"
+      ))) |>
+      arrange(group, participantId, responseId)
+
+    output_coding_sheet <- file.path(data_derived_dir, "conceptual_text_coding_sheet.csv")
+    write_csv(text_coding_sheet, output_coding_sheet)
+
+    cat("Coded text file was not found, so I created a blank coding sheet here:\n", output_coding_sheet, "\n\n")
+    cat("After coding the score column, save a copy as conceptual_text_coding_sheet_coded.csv in the same folder, then knit this report again.\n")
+
+    text_item <- tibble()
+    text_participant <- tibble()
+  }
+} else {
+  text_item <- read_csv(coded_text_file, show_col_types = FALSE) |>
+    make_group_labels() |>
+    filter(responseId %in% TEXT_RESPONSE_IDS) |>
+    mutate(
+      question_label = recode(responseId, !!!QUESTION_LABELS),
+      score = suppressWarnings(as.numeric(score)),
+      score = case_when(
+        score %in% c(0, 0.5, 1) ~ score,
+        TRUE ~ NA_real_
+      )
+    ) |>
+    arrange(group, participantId, responseId)
+
+  text_participant <- text_item |>
+    group_by(participantId, group, lecture_type, practice_type) |>
+    summarise(
+      text_n_items = n(),
+      text_n_scored = sum(!is.na(score)),
+      text_score_total = sum(score, na.rm = TRUE),
+      text_score_mean = mean(score, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    mutate(
+      text_score_total = if_else(text_n_scored == 0, NA_real_, text_score_total),
+      text_score_mean = if_else(text_n_scored == 0, NA_real_, text_score_mean)
+    ) |>
+    arrange(group, participantId)
+
+  cat(
+  '<div class="note-box"><strong>Loaded coded text file:</strong> ',
+  basename(coded_text_file),
+  '</div>'
+)
+}
+```
+
+```{r text-coding-check}
+if (exists("text_item") && nrow(text_item) > 0) {
+  text_item |>
+    count(responseId, question_label, score, name = "n_responses") |>
+    arrange(responseId, score) |>
+    pretty_table()
+}
+```
+
+## 3.3 Text-response score
+
+```{r text-summary}
+if (exists("text_participant") && nrow(text_participant) > 0) {
+  text_summary <- text_participant |>
+    group_by(group) |>
+    summarise(
+      n_participants = n(),
+      mean_text_total = mean(text_score_total, na.rm = TRUE),
+      sd_text_total = sd(text_score_total, na.rm = TRUE),
+      mean_text_score = mean(text_score_mean, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  text_summary |> pretty_table()
+}
+```
+
+```{r text-plot, fig.width=8, fig.height=5}
+if (exists("text_participant") && nrow(text_participant) > 0) {
+  plot_condition_points(
+    text_participant,
+    text_score_total,
+    "Open-ended conceptual score (0–4)",
+    "Open-ended conceptual-question score",
+    "Each of the four text questions is scored 0, 0.5, or 1."
+  ) +
+    scale_y_continuous(limits = c(0, 4), breaks = 0:4)
+}
+```
+
+```{r text-model}
+if (exists("text_participant") && nrow(text_participant) > 0) {
+  text_model_data <- text_participant |>
+    left_join(
+      prior_participant |> select(participantId, prior_correlation_score, prior_slope_score, prior_total),
+      by = "participantId"
+    )
+
+  m_text <- lm(text_score_total ~ lecture_type * practice_type + prior_total, data = text_model_data)
+
+  cat("#### Condition estimates\n\n")
+  condition_estimates_lm(m_text) |>
+    pretty_table()
+
+  cat("\n#### Model coefficients\n\n")
+  model_table_lm(m_text) |>
+    pretty_table()
+}
+```
+
+```{r text-interpretation, results='asis'}
+if (exists("text_participant") && nrow(text_participant) > 0) {
+  best_text <- text_summary |>
+    arrange(desc(mean_text_total)) |>
+    slice(1)
+
+  lowest_text <- text_summary |>
+    arrange(mean_text_total) |>
+    slice(1)
+
+  text_lm_table <- model_table_lm(m_text)
+  text_lecture_est <- text_lm_table |> filter(term == "lecture_typePlotWise") |> pull(estimate)
+  text_lecture_p <- text_lm_table |> filter(term == "lecture_typePlotWise") |> pull(p_value)
+  text_practice_p <- text_lm_table |> filter(term == "practice_typePlotWise") |> pull(p_value)
+  text_interaction_p <- text_lm_table |> filter(term == "lecture_typePlotWise:practice_typePlotWise") |> pull(p_value)
+  text_prior_est <- text_lm_table |> filter(term == "prior_total") |> pull(estimate)
+  text_prior_p <- text_lm_table |> filter(term == "prior_total") |> pull(p_value)
+
+  cat(
+    '<div class="note-box"><strong>Interpretation: open-ended conceptual reasoning.</strong><br><br>',
+    'This is the most interesting conceptual result. The text-response score is lowest in <strong>',
+    as.character(lowest_text$group), '</strong> (M = ', round(lowest_text$mean_text_total, 3),
+    ' out of 4) and highest in <strong>', as.character(best_text$group), '</strong> (M = ',
+    round(best_text$mean_text_total, 3), ' out of 4). The two conditions that saw the PlotWise lecture, ',
+    '<strong>PC</strong> and <strong>PP</strong>, are descriptively higher than the two control-lecture conditions. ',
+    'After controlling for prior knowledge, the model shows a positive PlotWise lecture term (estimate = ', round(text_lecture_est, 3),
+    ', p = ', text_lecture_p, '), while the practice term is weaker (p = ', text_practice_p,
+    ') and the interaction is not clear (p = ', text_interaction_p, '). ',
+    'The prior-knowledge covariate is also included in this model (estimate = ', round(text_prior_est, 3), ', p = ', text_prior_p, '). ',
+    'I would read this as evidence that seeing PlotWise modeled in the lecture may have helped participants articulate conceptual differences between slope and correlation.',
+    '</div>'
+  )
+}
+```
+
+# 4. Combined conceptual-question score
+
+This combined score summarizes only the conceptual-question section: the two choose-strongest-r items and the four coded text responses. It does **not** include value estimation or add-points performance.
+
+```{r combined-conceptual-score}
+if (nrow(choose_participant) > 0 && exists("text_participant") && nrow(text_participant) > 0) {
+  conceptual_participant <- participant_index |>
+    select(participantId, group, lecture_type, practice_type) |>
+    left_join(
+      choose_participant |>
+        select(participantId, group, lecture_type, practice_type, choose_r_pct_correct),
+      by = c("participantId", "group", "lecture_type", "practice_type")
+    ) |>
+    left_join(
+      text_participant |>
+        select(participantId, group, lecture_type, practice_type, text_score_mean, text_score_total),
+      by = c("participantId", "group", "lecture_type", "practice_type")
+    ) |>
+    left_join(
+      prior_participant |>
+        select(participantId, prior_correlation_score, prior_slope_score, prior_total),
+      by = "participantId"
+    ) |>
+    mutate(
+      conceptual_question_score = rowMeans(
+        cbind(choose_r_pct_correct, text_score_mean),
+        na.rm = FALSE
+      )
+    )
+
+  conceptual_summary <- conceptual_participant |>
+    group_by(group) |>
+    summarise(
+      n_participants = sum(!is.na(conceptual_question_score)),
+      mean_conceptual_score = mean(conceptual_question_score, na.rm = TRUE),
+      sd_conceptual_score = sd(conceptual_question_score, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  conceptual_summary |> pretty_table()
+}
+```
+
+```{r combined-conceptual-plot, fig.width=8, fig.height=5}
+if (exists("conceptual_participant") && nrow(conceptual_participant) > 0) {
+  plot_condition_points(
+    conceptual_participant,
+    conceptual_question_score,
+    "Conceptual-question score (0–1)",
+    "Combined conceptual-question score",
+    "Average of choose-r accuracy and mean text-response score."
+  ) +
+    scale_y_continuous(limits = c(0, 1), labels = scales::percent_format(accuracy = 1))
+}
+```
+
+```{r combined-conceptual-model}
+if (exists("conceptual_participant") && nrow(conceptual_participant) > 0) {
+  m_conceptual <- lm(conceptual_question_score ~ lecture_type * practice_type + prior_total, data = conceptual_participant)
+
+  cat("#### Condition estimates\n\n")
+  condition_estimates_lm(m_conceptual) |>
+    pretty_table()
+
+  cat("\n#### Model coefficients\n\n")
+  model_table_lm(m_conceptual) |>
+    pretty_table()
+}
+```
+
+```{r combined-interpretation, results='asis'}
+if (exists("conceptual_participant") && nrow(conceptual_participant) > 0) {
+  best_conceptual <- conceptual_summary |>
+    arrange(desc(mean_conceptual_score)) |>
+    slice(1)
+
+  lowest_conceptual <- conceptual_summary |>
+    arrange(mean_conceptual_score) |>
+    slice(1)
+
+  conceptual_lm_table <- model_table_lm(m_conceptual)
+  conceptual_lecture_est <- conceptual_lm_table |> filter(term == "lecture_typePlotWise") |> pull(estimate)
+  conceptual_lecture_p <- conceptual_lm_table |> filter(term == "lecture_typePlotWise") |> pull(p_value)
+  conceptual_practice_est <- conceptual_lm_table |> filter(term == "practice_typePlotWise") |> pull(estimate)
+  conceptual_practice_p <- conceptual_lm_table |> filter(term == "practice_typePlotWise") |> pull(p_value)
+  conceptual_interaction_p <- conceptual_lm_table |> filter(term == "lecture_typePlotWise:practice_typePlotWise") |> pull(p_value)
+  conceptual_prior_est <- conceptual_lm_table |> filter(term == "prior_total") |> pull(estimate)
+  conceptual_prior_p <- conceptual_lm_table |> filter(term == "prior_total") |> pull(p_value)
+
+  cat(
+    '<div class="note-box"><strong>Interpretation: combined conceptual-question score.</strong><br><br>',
+    'The combined conceptual-question score shows the same broad pattern as the text responses: <strong>',
+    as.character(lowest_conceptual$group), '</strong> is lowest (M = ', round(lowest_conceptual$mean_conceptual_score, 3),
+    ') and <strong>', as.character(best_conceptual$group), '</strong> is highest (M = ',
+    round(best_conceptual$mean_conceptual_score, 3), '). ',
+    'After controlling for prior knowledge, the PlotWise lecture term is positive (estimate = ', round(conceptual_lecture_est, 3),
+    ', p = ', conceptual_lecture_p, '), while PlotWise practice is smaller and more tentative (estimate = ',
+    round(conceptual_practice_est, 3), ', p = ', conceptual_practice_p,
+    '). The interaction is not clear (p = ', conceptual_interaction_p, '). ',
+    'The prior-knowledge covariate is included in this model as the summed pre-study correlation and slope definition score (estimate = ', round(conceptual_prior_est, 3), ', p = ', conceptual_prior_p, '). ',
+    'Because this combined score averages only the choose-r and open-ended conceptual items, I would treat it as a compact conceptual outcome family, not as an overall assessment score.',
+    '</div>'
+  )
+}
+```
+
+# 5. Working summary
+
+```{r working-summary, results='asis'}
+cat(
+  '<div class="summary-box"><strong>Working interpretation.</strong><br><br>',
+  'The conceptual-question results complement the add-points outcome but show a different pattern. ',
+  'The choose-strongest-r recognition items are close to chance and fairly flat across conditions, so I would not lead with them. ',
+  'The open-ended responses are more informative: participants in the PlotWise lecture conditions, especially PC and PP, gave stronger conceptual explanations of slope and correlation than participants in the control-lecture conditions. ',
+  'After controlling for prior knowledge using the summed pre-study correlation and slope definition score, the clearest model signal still comes from lecture type rather than practice type. ',
+  'A cautious interpretation is that the PlotWise lecture may have helped participants verbalize conceptual relationships between slope and correlation, even though the short forced-choice recognition task did not show a strong condition difference.<br><br>',
+  'I would keep this as a separate conceptual outcome family. For slides or writing, the cleanest takeaway is: <em>Conceptual explanations were descriptively strongest after PlotWise lecture exposure, while choose-r recognition accuracy was weak and not very diagnostic.</em>',
+  '</div>'
+)
+
+cat('
+<style>
+.note-box {
+  border-left: 6px solid #777;
+  background: #f7f7f7;
+  padding: 14px 18px;
+  margin: 18px 0;
+  border-radius: 6px;
+}
+.summary-box {
+  border-left: 6px solid #333;
+  background: #f4f4f4;
+  padding: 16px 20px;
+  margin: 22px 0;
+  border-radius: 6px;
+  font-size: 1.02em;
+}
+</style>
+')
+```

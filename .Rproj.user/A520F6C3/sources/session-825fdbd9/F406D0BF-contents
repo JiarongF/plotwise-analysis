@@ -1,0 +1,1018 @@
+---
+title: "Interest Survey Analysis"
+author: "Jiarong Feng"
+date: "2026-06-03"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: hide
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 9,
+  fig.height = 5.2,
+  dpi = 300
+)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+})
+
+has_kableExtra <- requireNamespace("kableExtra", quietly = TRUE)
+has_emmeans <- requireNamespace("emmeans", quietly = TRUE)
+has_psych <- requireNamespace("psych", quietly = TRUE)
+
+pretty_table <- function(x, caption = NULL, digits = 3) {
+  out <- knitr::kable(x, digits = digits, caption = caption, format = "html")
+  if (has_kableExtra) {
+    out <- kableExtra::kable_styling(
+      out,
+      full_width = FALSE,
+      bootstrap_options = c("striped", "hover", "condensed")
+    )
+  }
+  knitr::asis_output(out)
+}
+
+p_fmt <- function(p) {
+  ifelse(
+    is.na(p), NA_character_,
+    ifelse(p < .001, "< .001", sprintf("%.3f", p))
+  )
+}
+
+find_first_existing <- function(paths) {
+  paths[file.exists(paths)][1]
+}
+
+find_first_dir <- function(paths) {
+  paths[dir.exists(paths)][1]
+}
+
+# This Rmd usually lives in scripts/. The derived data folder is one level up.
+data_derived_dir <- find_first_dir(c(
+  file.path("..", "data", "derived"),
+  file.path("data", "derived"),
+  "data/derived"
+))
+
+fig_dir <- find_first_dir(c(
+  file.path("..", "figures"),
+  "figures"
+))
+if (is.na(fig_dir)) {
+  fig_dir <- file.path("..", "figures")
+  dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
+}
+
+GROUP_LEVELS <- c("CC", "CP", "PC", "PP")
+GROUP_LABELS <- c(
+  "CC" = "Control lecture + Control practice",
+  "CP" = "Control lecture + PlotWise practice",
+  "PC" = "PlotWise lecture + Control practice",
+  "PP" = "PlotWise lecture + PlotWise practice"
+)
+
+SCALE_LEVELS <- c("TSI", "MSI", "FutureInterest")
+SCALE_LABELS <- c(
+  "TSI" = "Triggered interest",
+  "MSI" = "Maintained interest",
+  "FutureInterest" = "Future interest"
+)
+
+clean_scale_type <- function(x) {
+  case_when(
+    x %in% c("TSI", "triggeredSituationalInterest", "TriggeredInterest", "Triggered interest") ~ "TSI",
+    x %in% c("MSI", "maintainedSituationalInterest", "MaintainedInterest", "Maintained interest") ~ "MSI",
+    x %in% c("FutureInterest", "futureInterestSurvey", "Future interest") ~ "FutureInterest",
+    TRUE ~ as.character(x)
+  )
+}
+
+# Interest responses use a 1--6 scale. Higher should always mean higher interest.
+# The two TSI boring items need to be reverse-coded. The function below marks
+# boring items from any available text/ID fields so the scoring does not depend
+# on one exact column name.
+detect_reverse_interest_item <- function(data) {
+  text_cols <- intersect(
+    c("responseId", "question_label", "question", "responsePrompt", "prompt", "item_text", "answer_label"),
+    names(data)
+  )
+
+  if (length(text_cols) == 0) {
+    return(rep(FALSE, nrow(data)))
+  }
+
+  item_text <- data |>
+    mutate(.row_id = row_number()) |>
+    unite(".item_text", all_of(text_cols), sep = " ", remove = FALSE, na.rm = TRUE) |>
+    pull(.item_text) |>
+    str_to_lower()
+
+  str_detect(item_text, "boring")
+}
+
+theme_report <- function(base_size = 12) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "none",
+      strip.text = element_text(face = "bold"),
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "gray35"),
+      axis.title = element_text(face = "bold")
+    )
+}
+```
+
+# Overview
+
+This report focuses on the interest survey outcomes collected after the learning tasks. I keep these separate from the performance outcomes because the question is different here:
+
+> Did the lecture/practice conditions change how interesting, enjoyable, or future-relevant the session felt?
+
+The survey is summarized into three scales:
+
+- **Triggered situational interest (TSI)**: immediate interest/enjoyment during the session.
+- **Maintained situational interest (MSI)**: more stable interest in correlation, slope, and statistics.
+- **Future interest**: willingness to participate in similar future studies.
+
+All scales are scored so that higher values mean higher interest. The negatively worded TSI items about the video/session being boring are reverse-coded before the scale composites are computed.
+
+# Load interest files
+
+```{r load-interest}
+if (is.na(data_derived_dir)) {
+  stop("Could not find data/derived. Check the knit working directory.")
+}
+
+interest_long_path <- find_first_existing(c(
+  file.path(data_derived_dir, "interest_survey_long.csv"),
+  file.path(data_derived_dir, "scored_interest_item_level.csv")
+))
+
+interest_wide_path <- find_first_existing(c(
+  file.path(data_derived_dir, "interest_survey_wide.csv"),
+  file.path(data_derived_dir, "scored_interest_participant_level.csv")
+))
+
+condition_index_path <- find_first_existing(c(
+  file.path(data_derived_dir, "participant_condition_index.csv"),
+  file.path(data_derived_dir, "participant_outcomes.csv")
+))
+
+if (is.na(interest_long_path)) {
+  stop("Could not find interest_survey_long.csv or scored_interest_item_level.csv in data/derived.")
+}
+
+df_interest_raw <- readr::read_csv(interest_long_path, show_col_types = FALSE)
+
+condition_index <- NULL
+if (!is.na(condition_index_path)) {
+  condition_index <- readr::read_csv(condition_index_path, show_col_types = FALSE) |>
+    select(any_of(c("participantId", "group", "lecture_type", "practice_type"))) |>
+    distinct()
+}
+```
+
+```{r normalize-interest}
+df_interest <- df_interest_raw
+
+# Add condition columns if the interest file does not already contain them.
+if (!all(c("group", "lecture_type", "practice_type") %in% names(df_interest)) &&
+    !is.null(condition_index)) {
+  df_interest <- df_interest |>
+    left_join(condition_index, by = "participantId")
+}
+
+# If scale_type is absent but trialId is present, infer it from the trial.
+if (!"scale_type" %in% names(df_interest) && "trialId" %in% names(df_interest)) {
+  df_interest <- df_interest |>
+    mutate(scale_type = clean_scale_type(trialId))
+}
+
+# Build a numeric raw answer if needed.
+if (!"answer_num" %in% names(df_interest) && "answer" %in% names(df_interest)) {
+  df_interest <- df_interest |>
+    mutate(answer_num = suppressWarnings(as.numeric(answer)))
+}
+
+# Reverse-code negatively worded interest items.
+# For the interest survey, these are the TSI items that say the video/session was boring.
+# On a 1--6 scale, reverse-scored value = 7 - raw value.
+if (!"reverse" %in% names(df_interest)) {
+  df_interest <- df_interest |>
+    mutate(reverse = detect_reverse_interest_item(cur_data_all()))
+} else {
+  df_interest <- df_interest |>
+    mutate(
+      reverse = as.logical(reverse) | detect_reverse_interest_item(cur_data_all())
+    )
+}
+
+# Always construct answer_scored here so the reverse-coding rule is explicit.
+# If the input file already contained answer_scored, this overwrites it to keep
+# scoring consistent with the rules documented in this report.
+df_interest <- df_interest |>
+  mutate(answer_scored = if_else(reverse, 7 - answer_num, answer_num))
+
+# If question labels are absent, use responseId as the label.
+if (!"question_label" %in% names(df_interest) && "responseId" %in% names(df_interest)) {
+  df_interest <- df_interest |>
+    mutate(question_label = responseId)
+}
+
+required_cols <- c("participantId", "group", "lecture_type", "practice_type", "scale_type", "answer_scored")
+missing_cols <- setdiff(required_cols, names(df_interest))
+if (length(missing_cols) > 0) {
+  stop(paste("Interest file is missing required columns:", paste(missing_cols, collapse = ", ")))
+}
+
+df_interest <- df_interest |>
+  mutate(
+    group = factor(group, levels = GROUP_LEVELS),
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    scale_type = factor(clean_scale_type(scale_type), levels = SCALE_LEVELS),
+    scale_label = recode(as.character(scale_type), !!!SCALE_LABELS),
+    question_label = if ("question_label" %in% names(df_interest)) question_label else as.character(responseId)
+  ) |>
+  filter(!is.na(group), !is.na(scale_type), !is.na(answer_scored))
+```
+
+```{r data-source-note, results='asis'}
+cat(
+  "<p>Loaded interest item-level data from <code>",
+  basename(interest_long_path),
+  "</code> in <code>",
+  data_derived_dir,
+  "</code>.</p>",
+  sep = ""
+)
+```
+
+# Scoring check
+
+The interest survey uses a 1--6 response scale. I reverse-code the negatively worded TSI items so that higher scores always mean higher interest. In practice, this should catch the two boring items.
+
+```{r reverse-coding-check}
+reverse_check <- df_interest |>
+  filter(reverse) |>
+  distinct(scale_type, responseId, question_label) |>
+  mutate(scale_type = recode(as.character(scale_type), !!!SCALE_LABELS)) |>
+  arrange(scale_type, responseId)
+
+if (nrow(reverse_check) == 0) {
+  pretty_table(
+    tibble(note = "No reverse-coded items were detected. Check whether the boring items have different labels in the raw file."),
+    caption = "Reverse-coded interest items"
+  )
+} else {
+  pretty_table(
+    reverse_check,
+    caption = "Reverse-coded interest items"
+  )
+}
+```
+
+```{r reverse-coding-note, results='asis'}
+n_reverse_items <- n_distinct(reverse_check$responseId)
+if (n_reverse_items == 2) {
+  cat("<div class='note-box'><strong>Scoring check.</strong> Two negatively worded boring items were reverse-coded, which matches the survey design.</div>")
+} else if (n_reverse_items == 0) {
+  cat("<div class='note-box'><strong>Scoring check.</strong> No reverse-coded items were detected. Before interpreting TSI, check whether the boring item labels are available in this file.</div>")
+} else {
+  cat("<div class='note-box'><strong>Scoring check.</strong> ", n_reverse_items, " reverse-coded items were detected. This may be correct, but it is worth checking the item list once.", "</div>", sep = "")
+}
+```
+
+# Data checks
+
+```{r interest-data-check}
+interest_check <- df_interest |>
+  group_by(group, lecture_type, practice_type, scale_type) |>
+  summarise(
+    n_participants = n_distinct(participantId),
+    n_item_rows = n(),
+    n_valid_responses = sum(!is.na(answer_scored)),
+    min_score = min(answer_scored, na.rm = TRUE),
+    max_score = max(answer_scored, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(scale_type = recode(as.character(scale_type), !!!SCALE_LABELS)) |>
+  arrange(scale_type, group)
+
+pretty_table(
+  interest_check,
+  caption = "Interest item-level data check"
+)
+```
+
+```{r data-check-interpretation, results='asis'}
+check_n <- interest_check |>
+  group_by(scale_type) |>
+  summarise(
+    min_n = min(n_participants),
+    max_n = max(n_participants),
+    .groups = "drop"
+  )
+
+if (all(check_n$min_n == check_n$max_n)) {
+  cat("<div class='note-box'><strong>Data check.</strong> Each condition has the same number of participants for each interest scale. This makes the descriptive condition comparisons easier to read.</div>")
+} else {
+  cat("<div class='note-box'><strong>Data check.</strong> Participant counts differ slightly across conditions or scales, so the model-estimated means are more useful than raw condition means alone.</div>")
+}
+```
+
+# Build participant-level scale scores
+
+Each participant gets one composite score per interest scale. The composite is the mean of the scored item responses for that scale.
+
+```{r participant-level-scores}
+interest_ppt <- df_interest |>
+  group_by(participantId, group, lecture_type, practice_type, scale_type) |>
+  summarise(
+    n_items = n(),
+    composite = mean(answer_scored, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    group = factor(group, levels = GROUP_LEVELS),
+    scale_type = factor(scale_type, levels = SCALE_LEVELS),
+    scale_label = recode(as.character(scale_type), !!!SCALE_LABELS)
+  )
+
+interest_summary <- interest_ppt |>
+  group_by(scale_type, group, lecture_type, practice_type) |>
+  summarise(
+    n_participants = n_distinct(participantId),
+    mean_interest = mean(composite, na.rm = TRUE),
+    sd_interest = sd(composite, na.rm = TRUE),
+    se_interest = sd_interest / sqrt(n_participants),
+    median_interest = median(composite, na.rm = TRUE),
+    min_interest = min(composite, na.rm = TRUE),
+    max_interest = max(composite, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(scale_type = recode(as.character(scale_type), !!!SCALE_LABELS)) |>
+  arrange(scale_type, group)
+
+pretty_table(
+  interest_summary,
+  caption = "Participant-level composite interest scores by condition"
+)
+```
+
+```{r participant-plot}
+interest_plot_data <- interest_ppt |>
+  mutate(
+    group_label = factor(group, levels = GROUP_LEVELS),
+    scale_label = factor(scale_label, levels = SCALE_LABELS)
+  )
+
+p_interest_distribution <- ggplot(
+  interest_plot_data,
+  aes(x = group_label, y = composite)
+) +
+  geom_boxplot(width = 0.52, alpha = 0.35, outlier.shape = NA) +
+  geom_jitter(aes(color = group_label), width = 0.10, alpha = 0.55, size = 1.8) +
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 23,
+    size = 3.0,
+    fill = "white",
+    color = "black"
+  ) +
+  facet_wrap(~ scale_label, nrow = 1) +
+  scale_y_continuous(limits = c(1, 6), breaks = 1:6) +
+  labs(
+    title = "Interest composite scores by condition",
+    subtitle = "Small points are participants; white diamonds are condition means.",
+    x = "Condition",
+    y = "Composite interest score"
+  ) +
+  theme_report() +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+
+p_interest_distribution
+ggsave(file.path(fig_dir, "interest_composite_scores_by_condition.png"), p_interest_distribution, width = 9, height = 5.2, dpi = 300)
+```
+
+```{r descriptive-interpretation, results='asis'}
+best_by_scale <- interest_summary |>
+  group_by(scale_type) |>
+  slice_max(mean_interest, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  select(scale_type, best_group = group, best_mean = mean_interest)
+
+worst_by_scale <- interest_summary |>
+  group_by(scale_type) |>
+  slice_min(mean_interest, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  select(scale_type, worst_group = group, worst_mean = mean_interest)
+
+desc_join <- best_by_scale |>
+  left_join(worst_by_scale, by = "scale_type") |>
+  mutate(range = best_mean - worst_mean)
+
+desc_sentences <- desc_join |>
+  mutate(
+    sentence = paste0(
+      "<li><strong>", scale_type, ":</strong> ", best_group,
+      " is highest (M = ", sprintf("%.2f", best_mean),
+      ") and ", worst_group,
+      " is lowest (M = ", sprintf("%.2f", worst_mean),
+      "), a raw spread of about ", sprintf("%.2f", range), " points.</li>"
+    )
+  ) |>
+  pull(sentence)
+
+cat("<div class='note-box'><strong>How I read the descriptive pattern.</strong><ul>")
+cat(paste(desc_sentences, collapse = "\n"))
+cat("</ul>The spreads are useful for orientation, but the participant-level dots matter here because there is a lot of within-condition variation.</div>")
+```
+
+# Scale reliability check
+
+This is a quick internal-consistency check for each interest scale. I would treat this as a diagnostic, not as a main result.
+
+```{r reliability-check}
+if (has_psych && "responseId" %in% names(df_interest)) {
+  reliability_tbl <- df_interest |>
+    select(participantId, scale_type, responseId, answer_scored) |>
+    group_by(scale_type) |>
+    group_modify(~ {
+      wide <- .x |>
+        select(participantId, responseId, answer_scored) |>
+        distinct() |>
+        pivot_wider(names_from = responseId, values_from = answer_scored) |>
+        select(-participantId)
+
+      alpha_value <- tryCatch(
+        psych::alpha(wide, warnings = FALSE)$total$raw_alpha,
+        error = function(e) NA_real_
+      )
+
+      tibble(
+        n_items = ncol(wide),
+        alpha = alpha_value
+      )
+    }) |>
+    ungroup() |>
+    mutate(scale_type = recode(as.character(scale_type), !!!SCALE_LABELS))
+
+  pretty_table(
+    reliability_tbl,
+    caption = "Internal consistency by interest scale"
+  )
+} else {
+  reliability_tbl <- tibble(
+    note = "Reliability check skipped because psych is not installed or responseId is unavailable."
+  )
+  pretty_table(reliability_tbl, caption = "Internal consistency by interest scale")
+}
+```
+
+# Item-level descriptives
+
+I keep this section short. The participant-level composites are easier to use for condition comparisons, but item-level summaries help check whether one item is behaving oddly.
+
+```{r item-level-summary}
+interest_item_summary <- df_interest |>
+  group_by(scale_type, responseId, question_label, group) |>
+  summarise(
+    n_responses = n(),
+    mean_score = mean(answer_scored, na.rm = TRUE),
+    sd_score = sd(answer_scored, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(scale_type = recode(as.character(scale_type), !!!SCALE_LABELS)) |>
+  arrange(scale_type, responseId, group)
+
+# Compact table: item means collapsed across condition, just to scan item difficulty.
+interest_item_overall <- df_interest |>
+  group_by(scale_type, responseId, question_label) |>
+  summarise(
+    n_responses = n(),
+    mean_score = mean(answer_scored, na.rm = TRUE),
+    sd_score = sd(answer_scored, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(scale_type = recode(as.character(scale_type), !!!SCALE_LABELS)) |>
+  arrange(scale_type, mean_score)
+
+pretty_table(
+  interest_item_overall,
+  caption = "Item-level interest scores, collapsed across conditions"
+)
+```
+
+```{r item-plot}
+item_plot_data <- interest_item_summary |>
+  mutate(
+    group = factor(group, levels = GROUP_LEVELS),
+    question_label = fct_reorder(question_label, mean_score, .fun = mean)
+  )
+
+p_item_means <- ggplot(
+  item_plot_data,
+  aes(x = group, y = question_label, fill = mean_score)
+) +
+  geom_tile(color = "white") +
+  facet_wrap(~ scale_type, scales = "free_y") +
+  scale_fill_gradient(limits = c(1, 6), low = "white", high = "gray30") +
+  labs(
+    title = "Item-level means by condition",
+    subtitle = "Darker cells indicate higher interest ratings.",
+    x = "Condition",
+    y = NULL,
+    fill = "Mean"
+  ) +
+  theme_report(base_size = 11) +
+  theme(legend.position = "right")
+
+p_item_means
+ggsave(file.path(fig_dir, "interest_item_means_by_condition.png"), p_item_means, width = 9, height = 6.5, dpi = 300)
+```
+
+# Separate models by interest scale
+
+The main model is run separately for each interest scale:
+
+```text
+interest composite ~ lecture_type * practice_type
+```
+
+This keeps the interpretation simple. The interaction term asks whether the effect of PlotWise practice depends on whether the lecture was also PlotWise.
+
+```{r fit-interest-models}
+fit_interest_model <- function(scale_name) {
+  dat <- interest_ppt |>
+    filter(scale_type == scale_name) |>
+    mutate(
+      lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+      practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+      group = factor(group, levels = GROUP_LEVELS)
+    )
+
+  lm(composite ~ lecture_type * practice_type, data = dat)
+}
+
+interest_models <- setNames(
+  lapply(SCALE_LEVELS, fit_interest_model),
+  SCALE_LEVELS
+)
+
+tidy_lm <- function(model) {
+  coef_tbl <- as.data.frame(coef(summary(model)))
+  coef_tbl$term <- rownames(coef_tbl)
+  rownames(coef_tbl) <- NULL
+
+  coef_tbl |>
+    transmute(
+      Term = recode(
+        term,
+        "(Intercept)" = "Intercept",
+        "lecture_typePlotWise" = "PlotWise lecture",
+        "practice_typePlotWise" = "PlotWise practice",
+        "lecture_typePlotWise:practice_typePlotWise" = "PlotWise lecture × PlotWise practice",
+        .default = term
+      ),
+      Estimate = Estimate,
+      SE = `Std. Error`,
+      `Test statistic` = `t value`,
+      `p-value` = p_fmt(`Pr(>|t|)`)
+    )
+}
+
+condition_estimates <- function(scale_name) {
+  model <- interest_models[[scale_name]]
+
+  if (has_emmeans) {
+    emm <- emmeans::emmeans(model, ~ lecture_type * practice_type)
+    as.data.frame(emm) |>
+      mutate(
+        group = case_when(
+          lecture_type == "Control" & practice_type == "Control" ~ "CC",
+          lecture_type == "Control" & practice_type == "PlotWise" ~ "CP",
+          lecture_type == "PlotWise" & practice_type == "Control" ~ "PC",
+          lecture_type == "PlotWise" & practice_type == "PlotWise" ~ "PP"
+        )
+      ) |>
+      transmute(
+        group = factor(group, levels = GROUP_LEVELS),
+        lecture_type,
+        practice_type,
+        estimated_mean = emmean,
+        SE = SE,
+        lower.CL = lower.CL,
+        upper.CL = upper.CL
+      )
+  } else {
+    interest_ppt |>
+      filter(scale_type == scale_name) |>
+      group_by(group, lecture_type, practice_type) |>
+      summarise(
+        estimated_mean = mean(composite, na.rm = TRUE),
+        SE = sd(composite, na.rm = TRUE) / sqrt(n()),
+        lower.CL = estimated_mean - qt(.975, n() - 1) * SE,
+        upper.CL = estimated_mean + qt(.975, n() - 1) * SE,
+        .groups = "drop"
+      )
+  }
+}
+```
+
+## Triggered interest model
+
+```{r model-tsi}
+pretty_table(
+  condition_estimates("TSI"),
+  caption = "Model-estimated condition means: triggered interest"
+)
+
+pretty_table(
+  tidy_lm(interest_models[["TSI"]]),
+  caption = "Model results: triggered interest"
+)
+```
+
+```{r model-tsi-interpretation, results='asis'}
+tsi_coef <- tidy_lm(interest_models[["TSI"]])
+tsi_int_p <- tsi_coef |> filter(Term == "PlotWise lecture × PlotWise practice") |> pull(`p-value`)
+tsi_est <- condition_estimates("TSI") |> arrange(desc(estimated_mean))
+
+cat(
+  "<div class='note-box'><strong>Triggered interest.</strong> ",
+  "The model-estimated means put ", as.character(tsi_est$group[1]), " highest and ",
+  as.character(tsi_est$group[nrow(tsi_est)]), " lowest. ",
+  "The interaction term is p = ", tsi_int_p,
+  ", so I would not treat this as a clean condition effect. ",
+  "This scale is mostly useful for seeing whether any condition felt immediately more engaging.</div>",
+  sep = ""
+)
+```
+
+## Maintained interest model
+
+```{r model-msi}
+pretty_table(
+  condition_estimates("MSI"),
+  caption = "Model-estimated condition means: maintained interest"
+)
+
+pretty_table(
+  tidy_lm(interest_models[["MSI"]]),
+  caption = "Model results: maintained interest"
+)
+```
+
+```{r model-msi-interpretation, results='asis'}
+msi_coef <- tidy_lm(interest_models[["MSI"]])
+msi_int_p <- msi_coef |> filter(Term == "PlotWise lecture × PlotWise practice") |> pull(`p-value`)
+msi_est <- condition_estimates("MSI") |> arrange(desc(estimated_mean))
+
+cat(
+  "<div class='note-box'><strong>Maintained interest.</strong> ",
+  "The condition ordering is ", paste(as.character(msi_est$group), collapse = " > "), ". ",
+  "The interaction term is p = ", msi_int_p,
+  ". I would read this as a descriptive pattern unless the contrast section below shows a clearer condition difference.</div>",
+  sep = ""
+)
+```
+
+## Future interest model
+
+```{r model-future}
+pretty_table(
+  condition_estimates("FutureInterest"),
+  caption = "Model-estimated condition means: future interest"
+)
+
+pretty_table(
+  tidy_lm(interest_models[["FutureInterest"]]),
+  caption = "Model results: future interest"
+)
+```
+
+```{r model-future-interpretation, results='asis'}
+future_coef <- tidy_lm(interest_models[["FutureInterest"]])
+future_int_p <- future_coef |> filter(Term == "PlotWise lecture × PlotWise practice") |> pull(`p-value`)
+future_est <- condition_estimates("FutureInterest") |> arrange(desc(estimated_mean))
+
+cat(
+  "<div class='note-box'><strong>Future interest.</strong> ",
+  "The model-estimated means put ", as.character(future_est$group[1]), " highest and ",
+  as.character(future_est$group[nrow(future_est)]), " lowest. ",
+  "The interaction term is p = ", future_int_p,
+  ". This is a secondary outcome, so I would use it as context rather than as the main study claim.</div>",
+  sep = ""
+)
+```
+
+```{r model-estimate-plot}
+all_estimates <- map_dfr(
+  SCALE_LEVELS,
+  ~ condition_estimates(.x) |> mutate(scale_type = .x)
+) |>
+  mutate(
+    scale_label = factor(recode(scale_type, !!!SCALE_LABELS), levels = SCALE_LABELS),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+p_model_estimates <- ggplot(
+  all_estimates,
+  aes(x = group, y = estimated_mean)
+) +
+  geom_point(size = 2.8) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.12) +
+  facet_wrap(~ scale_label, nrow = 1) +
+  scale_y_continuous(limits = c(1, 6), breaks = 1:6) +
+  labs(
+    title = "Model-estimated interest means",
+    subtitle = "Points show estimated condition means; intervals show 95% CIs.",
+    x = "Condition",
+    y = "Estimated interest score"
+  ) +
+  theme_report()
+
+p_model_estimates
+ggsave(file.path(fig_dir, "interest_model_estimated_means.png"), p_model_estimates, width = 9, height = 5.2, dpi = 300)
+```
+
+# Pairwise condition comparisons
+
+These comparisons are mainly for locating the pattern among the four conditions. I would not over-read individual pairwise tests unless a difference is both clear in the plot and reasonably stable in the table.
+
+```{r pairwise-comparisons}
+pairwise_for_scale <- function(scale_name) {
+  dat <- interest_ppt |>
+    filter(scale_type == scale_name) |>
+    mutate(group = factor(group, levels = GROUP_LEVELS))
+
+  m <- lm(composite ~ group, data = dat)
+
+  if (!has_emmeans) {
+    return(tibble(scale_type = scale_name, note = "emmeans not installed"))
+  }
+
+  emm <- emmeans::emmeans(m, ~ group)
+  as.data.frame(emmeans::contrast(emm, method = "pairwise", adjust = "tukey")) |>
+    transmute(
+      scale_type = scale_name,
+      contrast = contrast,
+      estimate = estimate,
+      SE = SE,
+      df = df,
+      t_ratio = t.ratio,
+      p_value = p.value,
+      p = p_fmt(p.value)
+    )
+}
+
+interest_pairwise <- map_dfr(SCALE_LEVELS, pairwise_for_scale) |>
+  mutate(scale_type = recode(scale_type, !!!SCALE_LABELS))
+
+pretty_table(
+  interest_pairwise |>
+    select(scale_type, contrast, estimate, SE, df, t_ratio, p),
+  caption = "All pairwise condition comparisons by interest scale"
+)
+```
+
+```{r pairwise-plot}
+if (has_emmeans) {
+  p_pairwise <- interest_pairwise |>
+    mutate(
+      scale_type = factor(scale_type, levels = SCALE_LABELS),
+      contrast = fct_rev(factor(contrast))
+    ) |>
+    ggplot(aes(x = estimate, y = contrast)) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+    geom_point(size = 2.2) +
+    geom_errorbarh(aes(xmin = estimate - 1.96 * SE, xmax = estimate + 1.96 * SE), height = 0.15) +
+    facet_wrap(~ scale_type, scales = "free_y") +
+    labs(
+      title = "Pairwise condition differences in interest",
+      subtitle = "Positive estimates favor the first condition in the contrast.",
+      x = "Estimated mean difference",
+      y = NULL
+    ) +
+    theme_report()
+
+  p_pairwise
+  ggsave(file.path(fig_dir, "interest_pairwise_comparisons.png"), p_pairwise, width = 9, height = 6, dpi = 300)
+}
+```
+
+# Design-driven contrasts
+
+These contrasts are easier to connect back to the 2 × 2 design.
+
+```{r design-contrasts}
+design_contrasts_for_scale <- function(scale_name) {
+  dat <- interest_ppt |>
+    filter(scale_type == scale_name) |>
+    mutate(group = factor(group, levels = GROUP_LEVELS))
+
+  m <- lm(composite ~ group, data = dat)
+
+  if (!has_emmeans) {
+    return(tibble(scale_type = scale_name, note = "emmeans not installed"))
+  }
+
+  emm <- emmeans::emmeans(m, ~ group)
+
+  contrast_list <- list(
+    "PlotWise practice vs control practice" = c(CC = -0.5, CP = 0.5, PC = -0.5, PP = 0.5),
+    "PlotWise lecture vs control lecture" = c(CC = -0.5, CP = -0.5, PC = 0.5, PP = 0.5),
+    "PP vs all other conditions" = c(CC = -1/3, CP = -1/3, PC = -1/3, PP = 1),
+    "Any PlotWise exposure vs CC" = c(CC = -1, CP = 1/3, PC = 1/3, PP = 1/3),
+    "CP vs PC" = c(CC = 0, CP = 1, PC = -1, PP = 0)
+  )
+
+  as.data.frame(emmeans::contrast(emm, contrast_list, adjust = "none")) |>
+    transmute(
+      scale_type = scale_name,
+      contrast = contrast,
+      estimate = estimate,
+      SE = SE,
+      df = df,
+      t_ratio = t.ratio,
+      p_value = p.value,
+      p = p_fmt(p.value)
+    )
+}
+
+interest_design_contrasts <- map_dfr(SCALE_LEVELS, design_contrasts_for_scale) |>
+  mutate(scale_type = recode(scale_type, !!!SCALE_LABELS))
+
+pretty_table(
+  interest_design_contrasts |>
+    select(scale_type, contrast, estimate, SE, df, t_ratio, p),
+  caption = "Design-driven contrasts by interest scale"
+)
+```
+
+```{r design-contrast-interpretation, results='asis'}
+if (has_emmeans) {
+  low_p <- interest_design_contrasts |>
+    filter(!is.na(p_value), p_value < .10) |>
+    arrange(p_value)
+
+  if (nrow(low_p) == 0) {
+    cat("<div class='note-box'><strong>Design-contrast takeaway.</strong> None of the design-driven contrasts are especially strong. I would describe the interest results as mostly descriptive rather than as evidence that one condition clearly changed interest.</div>")
+  } else {
+    lines <- low_p |>
+      mutate(
+        line = paste0(
+          "<li><strong>", scale_type, ":</strong> ", contrast,
+          " (estimate = ", sprintf("%.2f", estimate),
+          ", p = ", p_fmt(p_value), ").</li>"
+        )
+      ) |>
+      pull(line)
+
+    cat("<div class='note-box'><strong>Design-contrast takeaway.</strong> The clearest contrasts to mention are:<ul>")
+    cat(paste(lines, collapse = "\n"))
+    cat("</ul>I would still keep the wording cautious, because these are survey outcomes and the participant-level spread is visible in the plots.</div>")
+  }
+}
+```
+
+```{r design-contrast-plot}
+if (has_emmeans) {
+  p_design <- interest_design_contrasts |>
+    mutate(
+      scale_type = factor(scale_type, levels = SCALE_LABELS),
+      contrast = fct_rev(factor(contrast))
+    ) |>
+    ggplot(aes(x = estimate, y = contrast)) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+    geom_point(size = 2.2) +
+    geom_errorbarh(aes(xmin = estimate - 1.96 * SE, xmax = estimate + 1.96 * SE), height = 0.15) +
+    facet_wrap(~ scale_type, scales = "free_y") +
+    labs(
+      title = "Design-driven interest contrasts",
+      subtitle = "Positive estimates favor the PlotWise/first-listed side of each contrast.",
+      x = "Estimated mean difference",
+      y = NULL
+    ) +
+    theme_report()
+
+  p_design
+  ggsave(file.path(fig_dir, "interest_design_driven_contrasts.png"), p_design, width = 9, height = 6, dpi = 300)
+}
+```
+
+# Bootstrap note
+
+I do not bootstrap the interest outcomes in the main report. These scores are already participant-level composites, and each scale has one value per participant. For this report, the participant-level plots, linear models, and contrasts are enough to show the pattern.
+
+Bootstrap could be added later as a sensitivity check by resampling participants within each condition, but I would not make it a main analysis unless the interest results become central to the paper.
+
+# Overall interest score
+
+This is optional, but useful if we want one broad interest measure. I treat it as descriptive because the three scales are conceptually different.
+
+```{r overall-interest}
+interest_overall <- interest_ppt |>
+  group_by(participantId, group, lecture_type, practice_type) |>
+  summarise(
+    overall_interest = mean(composite, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(group = factor(group, levels = GROUP_LEVELS))
+
+overall_summary <- interest_overall |>
+  group_by(group, lecture_type, practice_type) |>
+  summarise(
+    n_participants = n_distinct(participantId),
+    mean_overall_interest = mean(overall_interest, na.rm = TRUE),
+    sd_overall_interest = sd(overall_interest, na.rm = TRUE),
+    median_overall_interest = median(overall_interest, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+pretty_table(
+  overall_summary,
+  caption = "Overall interest score by condition"
+)
+
+m_overall_interest <- lm(overall_interest ~ lecture_type * practice_type, data = interest_overall)
+pretty_table(
+  tidy_lm(m_overall_interest),
+  caption = "Model results: overall interest"
+)
+```
+
+```{r overall-interest-plot}
+p_overall <- ggplot(
+  interest_overall,
+  aes(x = group, y = overall_interest)
+) +
+  geom_boxplot(width = 0.55, alpha = 0.35, outlier.shape = NA) +
+  geom_jitter(width = 0.10, alpha = 0.55, size = 1.8) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black") +
+  scale_y_continuous(limits = c(1, 6), breaks = 1:6) +
+  labs(
+    title = "Overall interest by condition",
+    subtitle = "Overall interest averages the three interest scale composites.",
+    x = "Condition",
+    y = "Overall interest score"
+  ) +
+  theme_report()
+
+p_overall
+ggsave(file.path(fig_dir, "interest_overall_by_condition.png"), p_overall, width = 7, height = 5, dpi = 300)
+```
+
+# Working summary
+
+```{r working-summary, results='asis'}
+overall_best <- overall_summary |> slice_max(mean_overall_interest, n = 1, with_ties = FALSE)
+overall_worst <- overall_summary |> slice_min(mean_overall_interest, n = 1, with_ties = FALSE)
+overall_coef <- tidy_lm(m_overall_interest)
+overall_int_p <- overall_coef |> filter(Term == "PlotWise lecture × PlotWise practice") |> pull(`p-value`)
+
+cat(
+  "<div class='summary-box'>",
+  "<strong>Working interpretation.</strong><br><br>",
+  "Across the interest outcomes, I would start from the participant-level plots rather than from the p-values alone. ",
+  "The overall interest score is highest for <strong>", as.character(overall_best$group), "</strong> ",
+  "(M = ", sprintf("%.2f", overall_best$mean_overall_interest), ") and lowest for <strong>",
+  as.character(overall_worst$group), "</strong> (M = ",
+  sprintf("%.2f", overall_worst$mean_overall_interest), "). ",
+  "The overall lecture × practice interaction is p = ", overall_int_p, ".<br><br>",
+  "At this point I would describe the interest survey as a secondary outcome: useful for checking whether PlotWise changed students' subjective experience, but not the main evidence for learning/performance. ",
+  "If the condition differences are small or inconsistent across the three interest scales, the safest wording is that the intervention did not produce a clear interest advantage, even if one condition looks descriptively higher.",
+  "</div>",
+  sep = ""
+)
+```
+
+<style>
+.note-box {
+  border-left: 6px solid #777;
+  background: #f7f7f7;
+  padding: 14px 18px;
+  margin: 18px 0;
+  border-radius: 6px;
+}
+.summary-box {
+  border-left: 6px solid #333;
+  background: #f4f4f4;
+  padding: 16px 20px;
+  margin: 22px 0;
+  border-radius: 6px;
+  font-size: 1.02em;
+}
+</style>

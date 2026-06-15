@@ -1,0 +1,1061 @@
+---
+title: "Value-Estimation Analysis"
+author: "Jiarong Feng"
+date: "2026-06-03"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+    code_folding: hide
+    theme: readable
+    df_print: paged
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+source("../utils/utils.R")
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(lme4)
+  library(emmeans)
+  library(knitr)
+  library(scales)
+})
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5,
+  dpi = 150,
+  results = "asis"
+)
+
+theme_set(theme_plotwise())
+
+if (!exists("GROUP_LEVELS")) {
+  GROUP_LEVELS <- c("CC", "CP", "PC", "PP")
+}
+
+if (!exists("GROUP_COLORS")) {
+  GROUP_COLORS <- c(
+    "CC" = "#CC79A7",
+    "CP" = "#0072B2",
+    "PC" = "#D55E00",
+    "PP" = "#009E73"
+  )
+}
+
+pretty_table <- function(x, digits = 3, caption = NULL) {
+  x_display <- x |>
+    select(-any_of(c("estimate_value", "lower_value", "upper_value", "p_value_numeric")))
+
+  out <- knitr::kable(
+    x_display,
+    digits = digits,
+    caption = caption,
+    format = "html"
+  )
+
+  if (requireNamespace("kableExtra", quietly = TRUE)) {
+    out <- out |>
+      kableExtra::kable_styling(
+        full_width = FALSE,
+        bootstrap_options = c("striped", "hover", "condensed")
+      )
+  }
+
+  cat("\n", as.character(out), "\n")
+  invisible(out)
+}
+
+fmt_p <- function(p) {
+  case_when(
+    is.na(p) ~ "NA",
+    p < .001 ~ "< .001",
+    TRUE ~ paste0("= ", signif(p, 3))
+  )
+}
+
+fmt_pct <- function(x, accuracy = 1) {
+  scales::percent(x, accuracy = accuracy)
+}
+
+make_group_labels <- function(x) {
+  recode(
+    as.character(x),
+    CC = "CC: Control lecture + Control practice",
+    CP = "CP: Control lecture + PlotWise practice",
+    PC = "PC: PlotWise lecture + Control practice",
+    PP = "PP: PlotWise lecture + PlotWise practice",
+    .default = as.character(x)
+  )
+}
+
+model_fixed_effect_table <- function(model) {
+  out <- tryCatch(
+    {
+      coef_mat <- coef(summary(model))
+      coef_df <- as.data.frame(coef_mat, check.names = FALSE) |>
+        rownames_to_column("term") |>
+        as_tibble()
+
+      stat_col <- case_when(
+        "z value" %in% names(coef_df) ~ "z value",
+        "t value" %in% names(coef_df) ~ "t value",
+        TRUE ~ NA_character_
+      )
+
+      p_col <- case_when(
+        "Pr(>|z|)" %in% names(coef_df) ~ "Pr(>|z|)",
+        "Pr(>|t|)" %in% names(coef_df) ~ "Pr(>|t|)",
+        TRUE ~ NA_character_
+      )
+
+      coef_df2 <- coef_df |>
+        mutate(
+          statistic = if (!is.na(stat_col)) .data[[stat_col]] else NA_real_,
+          p_value = case_when(
+            !is.na(p_col) ~ as.numeric(.data[[p_col]]),
+            !is.na(stat_col) ~ 2 * stats::pnorm(abs(.data[[stat_col]]), lower.tail = FALSE),
+            TRUE ~ NA_real_
+          )
+        )
+
+      coef_df2 |>
+        transmute(
+          Term = recode(
+            term,
+            `(Intercept)` = "Intercept",
+            `lecture_typePlotWise` = "PlotWise lecture",
+            `practice_typePlotWise` = "PlotWise practice",
+            `lecture_typePlotWise:practice_typePlotWise` = "PlotWise lecture × PlotWise practice",
+            `correlation_score_z` = "Correlation prior knowledge (standardized)",
+            `slope_score_z` = "Slope prior knowledge (standardized)",
+            `prior_knowledge_total_z` = "Total prior knowledge (standardized)",
+            .default = term
+          ),
+          Estimate = round(Estimate, 3),
+          SE = round(`Std. Error`, 3),
+          `Test statistic` = round(statistic, 3),
+          `p-value` = fmt_p(p_value)
+        )
+    },
+    error = function(e) {
+      tibble(
+        Term = "Fixed-effect table unavailable",
+        Estimate = NA_real_,
+        SE = NA_real_,
+        `Test statistic` = NA_real_,
+        `p-value` = conditionMessage(e)
+      )
+    }
+  )
+
+  out
+}
+
+condition_estimates <- function(model, outcome_label, type = NULL) {
+  emm <- emmeans(model, ~ lecture_type * practice_type)
+  s <- if (is.null(type)) {
+    as_tibble(summary(emm, infer = TRUE))
+  } else {
+    as_tibble(summary(emm, infer = TRUE, type = type))
+  }
+
+  estimate_col <- case_when(
+    "response" %in% names(s) ~ "response",
+    "emmean" %in% names(s) ~ "emmean",
+    TRUE ~ NA_character_
+  )
+
+  lower_col <- case_when(
+    "asymp.LCL" %in% names(s) ~ "asymp.LCL",
+    "lower.CL" %in% names(s) ~ "lower.CL",
+    TRUE ~ NA_character_
+  )
+
+  upper_col <- case_when(
+    "asymp.UCL" %in% names(s) ~ "asymp.UCL",
+    "upper.CL" %in% names(s) ~ "upper.CL",
+    TRUE ~ NA_character_
+  )
+
+  s |>
+    mutate(
+      group = case_when(
+        lecture_type == "Control" & practice_type == "Control" ~ "CC",
+        lecture_type == "Control" & practice_type == "PlotWise" ~ "CP",
+        lecture_type == "PlotWise" & practice_type == "Control" ~ "PC",
+        lecture_type == "PlotWise" & practice_type == "PlotWise" ~ "PP",
+        TRUE ~ NA_character_
+      ),
+      group = factor(group, levels = GROUP_LEVELS),
+      estimate_value = .data[[estimate_col]],
+      lower_value = .data[[lower_col]],
+      upper_value = .data[[upper_col]]
+    ) |>
+    transmute(
+      Outcome = outcome_label,
+      Condition = group,
+      `Estimated mean` = round(estimate_value, 3),
+      `Lower 95% CI` = round(lower_value, 3),
+      `Upper 95% CI` = round(upper_value, 3),
+      estimate_value,
+      lower_value,
+      upper_value
+    ) |>
+    arrange(Condition)
+}
+
+clean_emm_comparison_table <- function(contrast_obj) {
+  out <- as_tibble(summary(contrast_obj, infer = TRUE))
+
+  estimate_col <- case_when(
+    "estimate" %in% names(out) ~ "estimate",
+    "odds.ratio" %in% names(out) ~ "odds.ratio",
+    TRUE ~ NA_character_
+  )
+
+  lower_col <- case_when(
+    "lower.CL" %in% names(out) ~ "lower.CL",
+    "asymp.LCL" %in% names(out) ~ "asymp.LCL",
+    TRUE ~ NA_character_
+  )
+
+  upper_col <- case_when(
+    "upper.CL" %in% names(out) ~ "upper.CL",
+    "asymp.UCL" %in% names(out) ~ "asymp.UCL",
+    TRUE ~ NA_character_
+  )
+
+  p_col <- case_when(
+    "p.value" %in% names(out) ~ "p.value",
+    TRUE ~ NA_character_
+  )
+
+  out |>
+    mutate(
+      estimate_value = .data[[estimate_col]],
+      lower_value = .data[[lower_col]],
+      upper_value = .data[[upper_col]],
+      p_value_numeric = .data[[p_col]]
+    ) |>
+    transmute(
+      Contrast = contrast,
+      Difference = round(estimate_value, 3),
+      `Lower 95% CI` = round(lower_value, 3),
+      `Upper 95% CI` = round(upper_value, 3),
+      `p-value` = fmt_p(p_value_numeric),
+      estimate_value,
+      lower_value,
+      upper_value,
+      p_value_numeric
+    )
+}
+
+plot_condition_estimates <- function(est_df, y_label, title, subtitle = NULL) {
+  ggplot(est_df, aes(x = Condition, y = estimate_value, color = Condition)) +
+    geom_pointrange(aes(ymin = lower_value, ymax = upper_value), linewidth = 0.8, size = 0.8) +
+    scale_color_manual(values = GROUP_COLORS, guide = "none") +
+    labs(title = title, subtitle = subtitle, x = "Condition", y = y_label) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "gray35")
+    )
+}
+
+plot_participant_with_model <- function(participant_df, estimate_df, y_col, y_label, title, subtitle = NULL) {
+  ggplot() +
+    geom_jitter(
+      data = participant_df,
+      aes(x = group, y = .data[[y_col]], color = group),
+      width = 0.12,
+      alpha = 0.55,
+      size = 1.8
+    ) +
+    geom_pointrange(
+      data = estimate_df,
+      aes(x = Condition, y = estimate_value, ymin = lower_value, ymax = upper_value),
+      color = "black",
+      linewidth = 0.9,
+      size = 0.8
+    ) +
+    scale_color_manual(values = GROUP_COLORS, guide = "none") +
+    labs(title = title, subtitle = subtitle, x = "Condition", y = y_label) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "gray35")
+    )
+}
+```
+
+# Overview
+
+This report focuses on **value-estimation performance**. These are the assessment items where participants estimated either the correlation value or the slope value from a scatterplot.
+
+The add-points tasks are analyzed separately. Here, I keep the correlation and slope estimation analyses separate because they are conceptually different skills and use different prior-knowledge covariates.
+
+The primary outcome is absolute error:
+
+> `abs_error_no_extreme = |participant estimate - correct value|`
+
+Lower values mean better performance. Extreme slope entries where `|answer| > 10` were preserved in the raw data but excluded from the primary cleaned error variable.
+
+# Load scored outcome files
+
+The scoring notebook writes the value-estimation outputs to `data/derived/`:
+
+- `scored_value_estimation_item_level.csv`
+- `scored_value_estimation_participant_level.csv`
+- `participant_outcomes.csv`
+
+Those files are created in `02_parse_and_score_outcomes.Rmd`.
+
+```{r load-data}
+value_item <- read_csv(
+  file.path(data_derived_dir, "scored_value_estimation_item_level.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS),
+    stat_type = factor(stat_type, levels = c("correlation", "slope"))
+  )
+
+value_participant <- read_csv(
+  file.path(data_derived_dir, "scored_value_estimation_participant_level.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS),
+    stat_type = factor(stat_type, levels = c("correlation", "slope"))
+  )
+```
+
+# Data checks
+
+```{r data-checks}
+data_check <- value_item |>
+  group_by(group, lecture_type, practice_type, stat_type) |>
+  summarise(
+    n_participants = n_distinct(participantId),
+    n_item_rows = n(),
+    n_valid_rows = sum(!is.na(abs_error_no_extreme)),
+    n_extreme_rows = sum(extreme_entry, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(stat_type, group)
+
+pretty_table(data_check, caption = "Value-estimation item-level data check")
+```
+
+```{r data-check-interpretation}
+extreme_summary <- value_item |>
+  summarise(
+    n_extreme = sum(extreme_entry, na.rm = TRUE),
+    n_extreme_slope = sum(extreme_entry & stat_type == "slope", na.rm = TRUE),
+    n_extreme_correlation = sum(extreme_entry & stat_type == "correlation", na.rm = TRUE)
+  )
+
+cat(
+  '<div class="note-box">',
+  '<p><strong>Scoring note.</strong> Extreme entries are only expected for slope. ',
+  'The primary error variable excludes those entries, so the slope analysis reflects cleaned value-estimation error rather than a few very large numeric entries.</p>',
+  '</div>'
+)
+```
+
+# Descriptive performance
+
+## Participant-level mean absolute error
+
+```{r participant-summary-table}
+participant_summary <- value_participant |>
+  group_by(stat_type, group, lecture_type, practice_type) |>
+  summarise(
+    n = n(),
+    mean_abs_error = mean(mean_abs_error, na.rm = TRUE),
+    sd_abs_error = sd(mean_abs_error, na.rm = TRUE),
+    median_abs_error = median(mean_abs_error, na.rm = TRUE),
+    mean_sign_error_rate = mean(sign_error_rate, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    stat_type = recode(as.character(stat_type), correlation = "Correlation", slope = "Slope")
+  ) |>
+  arrange(stat_type, group)
+
+pretty_table(participant_summary, caption = "Participant-level value-estimation performance by condition")
+```
+
+```{r participant-error-plot, fig.height=5.5}
+ggplot(value_participant, aes(x = group, y = mean_abs_error, color = group)) +
+  geom_jitter(width = 0.12, alpha = 0.55, size = 1.8) +
+  stat_summary(fun = mean, geom = "point", color = "black", size = 3) +
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar", color = "black", width = 0.18) +
+  facet_wrap(~ stat_type, scales = "free_y", labeller = as_labeller(c(correlation = "Correlation estimation", slope = "Slope estimation"))) +
+  scale_color_manual(values = GROUP_COLORS, guide = "none") +
+  labs(
+    title = "Participant-level value-estimation error",
+    subtitle = "Each colored point is one participant. Black points show condition means with normal-approximation CIs.",
+    x = "Condition",
+    y = "Mean absolute error"
+  ) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "gray35")
+  )
+```
+
+The first thing to look for here is whether the condition pattern is visually large compared with participant-to-participant variability. If the colored points overlap heavily across conditions, then even visible mean differences should be treated cautiously.
+
+## Sign errors
+
+Sign errors are only meaningful when the correct value is nonzero. I keep this as a secondary descriptive check because it captures a different kind of mistake: getting the direction wrong rather than simply being numerically far away.
+
+```{r sign-error-summary}
+sign_summary <- value_item |>
+  filter(!is.na(sign_error), correct_answer != 0) |>
+  group_by(stat_type, group) |>
+  summarise(
+    n_participants = n_distinct(participantId),
+    n_scored_trials = n(),
+    n_sign_errors = sum(sign_error, na.rm = TRUE),
+    sign_error_rate = n_sign_errors / n_scored_trials,
+    .groups = "drop"
+  ) |>
+  mutate(
+    stat_type = recode(as.character(stat_type), correlation = "Correlation", slope = "Slope"),
+    sign_error_rate = fmt_pct(sign_error_rate, accuracy = 0.1)
+  ) |>
+  arrange(stat_type, group)
+
+pretty_table(sign_summary, caption = "Sign errors by condition")
+```
+
+```{r sign-error-note}
+cat(
+  '<div class="note-box">',
+  '<p><strong>How to read this table.</strong> Here <code>n_sign_errors</code> is the count of trials where the participant gave the wrong sign. ',
+  '<code>n_scored_trials</code> is the number of nonzero-answer trials used as the denominator. ',
+  'I report sign error this way because the participant-level <code>n</code> can be confusing: each condition has 20 participants, but the sign-error question is really about how many responses had the wrong direction.</p>',
+  '</div>'
+)
+```
+
+# Correlation value-estimation model
+
+This model uses only the correlation-estimation items.
+
+```{r correlation-model-fit}
+corr_item <- value_item |>
+  filter(stat_type == "correlation", !is.na(abs_error_no_extreme))
+
+corr_participant <- value_participant |>
+  filter(stat_type == "correlation")
+
+m_corr <- lmer(
+  abs_error_no_extreme ~ lecture_type * practice_type + (1 | participantId),
+  data = corr_item,
+  REML = FALSE
+)
+
+corr_estimates <- condition_estimates(m_corr, "Correlation absolute error")
+```
+
+**Model formula**
+
+```text
+abs_error_no_extreme ~ lecture_type * practice_type + (1 | participantId)
+```
+
+```{r correlation-model-output}
+pretty_table(corr_estimates, caption = "Model-estimated condition means: correlation absolute error")
+pretty_table(model_fixed_effect_table(m_corr), caption = "Full model results: correlation absolute error")
+```
+
+```{r correlation-model-plot}
+plot_participant_with_model(
+  participant_df = corr_participant,
+  estimate_df = corr_estimates,
+  y_col = "mean_abs_error",
+  y_label = "Mean absolute error",
+  title = "Correlation estimation error by condition",
+  subtitle = "Colored points are participant means; black points are model-estimated condition means."
+)
+```
+
+```{r correlation-model-interpretation}
+corr_rank <- corr_estimates |>
+  arrange(estimate_value)
+
+cat(
+  '<div class="note-box">',
+  '<p><strong>How I read this.</strong> For correlation value estimation, the most useful result is the condition mean pattern rather than any single coefficient. ',
+  'The lowest estimated error is for <strong>', corr_rank$Condition[1], '</strong> and the highest estimated error is for <strong>', corr_rank$Condition[nrow(corr_rank)], '</strong>. ',
+  'Because lower error is better, this tells us which condition appears strongest descriptively, but the participant-level points should guide how stable that pattern looks.</p>',
+  '</div>'
+)
+```
+
+# Slope value-estimation model
+
+This model uses only the slope-estimation items. Extreme slope entries are excluded through `abs_error_no_extreme`.
+
+```{r slope-model-fit}
+slope_item <- value_item |>
+  filter(stat_type == "slope", !is.na(abs_error_no_extreme))
+
+slope_participant <- value_participant |>
+  filter(stat_type == "slope")
+
+m_slope <- lmer(
+  abs_error_no_extreme ~ lecture_type * practice_type + (1 | participantId),
+  data = slope_item,
+  REML = FALSE
+)
+
+slope_estimates <- condition_estimates(m_slope, "Slope absolute error")
+```
+
+**Model formula**
+
+```text
+abs_error_no_extreme ~ lecture_type * practice_type + (1 | participantId)
+```
+
+```{r slope-model-output}
+pretty_table(slope_estimates, caption = "Model-estimated condition means: slope absolute error")
+pretty_table(model_fixed_effect_table(m_slope), caption = "Full model results: slope absolute error")
+```
+
+```{r slope-model-plot}
+plot_participant_with_model(
+  participant_df = slope_participant,
+  estimate_df = slope_estimates,
+  y_col = "mean_abs_error",
+  y_label = "Mean absolute error",
+  title = "Slope estimation error by condition",
+  subtitle = "Colored points are participant means; black points are model-estimated condition means."
+)
+```
+
+```{r slope-model-interpretation}
+slope_rank <- slope_estimates |>
+  arrange(estimate_value)
+
+cat(
+  '<div class="note-box">',
+  '<p><strong>How I read this.</strong> For slope value estimation, the lowest estimated error is for <strong>', slope_rank$Condition[1], '</strong> and the highest estimated error is for <strong>', slope_rank$Condition[nrow(slope_rank)], '</strong>. ',
+  'I would read this together with the raw participant points, because slope estimates can be noisy even after removing extreme entries.</p>',
+  '</div>'
+)
+```
+
+# Condition contrasts
+
+The model coefficients are relative to the reference condition, so I use contrasts to read the condition differences more directly. For value estimation, positive differences mean the first condition has **higher error** than the second condition. Since lower error is better, positive differences favor the second condition.
+
+## Pairwise contrasts
+
+```{r pairwise-contrasts}
+emm_corr_group <- emmeans(m_corr, ~ lecture_type * practice_type)
+emm_slope_group <- emmeans(m_slope, ~ lecture_type * practice_type)
+
+pairwise_corr <- pairs(emm_corr_group, adjust = "tukey") |>
+  clean_emm_comparison_table() |>
+  mutate(Outcome = "Correlation") |>
+  select(Outcome, everything())
+
+pairwise_slope <- pairs(emm_slope_group, adjust = "tukey") |>
+  clean_emm_comparison_table() |>
+  mutate(Outcome = "Slope") |>
+  select(Outcome, everything())
+
+pretty_table(pairwise_corr, caption = "Pairwise comparisons: correlation absolute error")
+pretty_table(pairwise_slope, caption = "Pairwise comparisons: slope absolute error")
+```
+
+```{r pairwise-plot, fig.height=5.5}
+pairwise_plot_df <- bind_rows(pairwise_corr, pairwise_slope) |>
+  mutate(
+    Outcome = factor(Outcome, levels = c("Correlation", "Slope")),
+    Contrast = fct_rev(Contrast)
+  )
+
+ggplot(pairwise_plot_df, aes(x = estimate_value, y = Contrast)) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.6) +
+  geom_errorbarh(aes(xmin = lower_value, xmax = upper_value), height = 0) +
+  geom_point(aes(shape = p_value_numeric < .05), size = 2.5) +
+  facet_wrap(~ Outcome, scales = "free_x") +
+  scale_shape_manual(values = c(`TRUE` = 16, `FALSE` = 1), guide = "none") +
+  labs(
+    title = "Pairwise condition differences in value-estimation error",
+    subtitle = "Positive values mean the first condition had higher error. Open circles are non-significant.",
+    x = "Difference in mean absolute error",
+    y = NULL
+  ) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "gray35")
+  )
+```
+
+# Prior knowledge adjustment
+
+This section asks whether baseline definition knowledge helps explain value-estimation performance.
+
+For the correlation-estimation model, I add the coded correlation-definition score. For the slope-estimation model, I add the coded slope-definition score. Scores are standardized before entering the models.
+
+The coded prior-knowledge file is expected in `data/derived/`. In this project, the current file name is `prior_knowledge_coding_sheet_coded.csv`.
+
+```{r prior-knowledge-load}
+find_prior_knowledge_file <- function() {
+  candidates <- c(
+    "prior_knowledge_coding_sheet_coded.csv",
+    "prior_knowledge_scores.csv",
+    "prior_knowledge_coded.csv",
+    "coded_prior_knowledge.csv",
+    "prior_knowledge_participant_level.csv",
+    "scored_prior_knowledge.csv"
+  )
+
+  paths <- file.path(data_derived_dir, candidates)
+  existing <- paths[file.exists(paths)]
+
+  if (length(existing) == 0) {
+    return(NA_character_)
+  }
+
+  existing[1]
+}
+
+find_first_col <- function(df, candidates) {
+  cols <- candidates[candidates %in% names(df)]
+  if (length(cols) == 0) NA_character_ else cols[1]
+}
+
+prior_knowledge_path <- find_prior_knowledge_file()
+prior_knowledge_available <- !is.na(prior_knowledge_path)
+
+if (prior_knowledge_available) {
+  prior_raw <- read_csv(prior_knowledge_path, show_col_types = FALSE)
+
+  corr_col <- find_first_col(
+    prior_raw,
+    c("correlation_score", "prior_correlation_score", "correlation_prior_score")
+  )
+
+  slope_col <- find_first_col(
+    prior_raw,
+    c("slope_score", "prior_slope_score", "slope_prior_score")
+  )
+
+  total_col <- find_first_col(
+    prior_raw,
+    c("prior_knowledge_total", "prior_knowledge_score", "total_prior_score")
+  )
+
+  if (is.na(corr_col) || is.na(slope_col)) {
+    prior_knowledge_available <- FALSE
+    prior_knowledge_scores <- tibble()
+  } else {
+    prior_knowledge_scores <- prior_raw |>
+      transmute(
+        participantId,
+        correlation_score = as.numeric(.data[[corr_col]]),
+        slope_score = as.numeric(.data[[slope_col]]),
+        prior_knowledge_total = if (!is.na(total_col)) {
+          as.numeric(.data[[total_col]])
+        } else {
+          correlation_score + slope_score
+        }
+      ) |>
+      mutate(
+        correlation_score_z = as.numeric(scale(correlation_score)),
+        slope_score_z = as.numeric(scale(slope_score)),
+        prior_knowledge_total_z = as.numeric(scale(prior_knowledge_total))
+      )
+
+    value_item_with_prior <- value_item |>
+      left_join(prior_knowledge_scores, by = "participantId")
+
+    value_participant_with_prior <- value_participant |>
+      left_join(prior_knowledge_scores, by = "participantId")
+  }
+}
+```
+
+```{r prior-knowledge-availability}
+if (prior_knowledge_available) {
+  cat(
+    '<p>Loaded prior knowledge scores from <code>', basename(prior_knowledge_path), '</code>. ',
+    'The adjusted models below use standardized prior-knowledge scores.</p>'
+  )
+} else {
+  cat(
+    '<div class="note-box">',
+    '<p><strong>Prior knowledge file not found.</strong> This section is ready to run after the coded prior-knowledge file is saved in <code>data/derived/</code>.</p>',
+    '</div>'
+  )
+}
+```
+
+## Prior knowledge by condition
+
+```{r prior-knowledge-by-condition}
+if (prior_knowledge_available) {
+  prior_by_condition <- value_participant |>
+    distinct(participantId, group, lecture_type, practice_type) |>
+    left_join(prior_knowledge_scores, by = "participantId") |>
+    group_by(group, lecture_type, practice_type) |>
+    summarise(
+      n = n(),
+      n_with_scores = sum(!is.na(prior_knowledge_total)),
+      mean_correlation_prior = mean(correlation_score, na.rm = TRUE),
+      sd_correlation_prior = sd(correlation_score, na.rm = TRUE),
+      mean_slope_prior = mean(slope_score, na.rm = TRUE),
+      sd_slope_prior = sd(slope_score, na.rm = TRUE),
+      mean_total_prior = mean(prior_knowledge_total, na.rm = TRUE),
+      sd_total_prior = sd(prior_knowledge_total, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  pretty_table(prior_by_condition, caption = "Prior knowledge scores by condition")
+}
+```
+
+```{r prior-knowledge-by-condition-plot}
+if (prior_knowledge_available) {
+  prior_plot_df <- value_participant |>
+    distinct(participantId, group) |>
+    left_join(prior_knowledge_scores, by = "participantId") |>
+    pivot_longer(
+      cols = c(correlation_score, slope_score, prior_knowledge_total),
+      names_to = "score_type",
+      values_to = "score"
+    ) |>
+    mutate(
+      score_type = recode(
+        score_type,
+        correlation_score = "Correlation prior",
+        slope_score = "Slope prior",
+        prior_knowledge_total = "Total prior"
+      )
+    )
+
+  ggplot(prior_plot_df, aes(x = group, y = score, color = group)) +
+    geom_jitter(width = 0.12, alpha = 0.55, size = 1.8) +
+    stat_summary(fun = mean, geom = "point", color = "black", size = 3) +
+    facet_wrap(~ score_type, scales = "free_y") +
+    scale_color_manual(values = GROUP_COLORS, guide = "none") +
+    labs(
+      title = "Prior knowledge by condition",
+      subtitle = "Colored points are participants; black points are condition means.",
+      x = "Condition",
+      y = "Coded prior-knowledge score"
+    ) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "gray35")
+    )
+}
+```
+
+## Correlation model with prior correlation knowledge
+
+```{r correlation-prior-model-fit}
+if (prior_knowledge_available) {
+  corr_item_prior <- value_item_with_prior |>
+    filter(stat_type == "correlation", !is.na(abs_error_no_extreme), !is.na(correlation_score_z))
+
+  corr_participant_prior <- value_participant_with_prior |>
+    filter(stat_type == "correlation", !is.na(correlation_score_z))
+
+  m_corr_prior <- lmer(
+    abs_error_no_extreme ~ lecture_type * practice_type + correlation_score_z + (1 | participantId),
+    data = corr_item_prior,
+    REML = FALSE
+  )
+
+  corr_prior_estimates <- condition_estimates(m_corr_prior, "Correlation absolute error")
+}
+```
+
+**Model formula**
+
+```text
+abs_error_no_extreme ~ lecture_type * practice_type + correlation_score_z + (1 | participantId)
+```
+
+```{r correlation-prior-model-output}
+if (prior_knowledge_available) {
+  pretty_table(corr_prior_estimates, caption = "Prior-knowledge-adjusted condition means: correlation absolute error")
+  pretty_table(model_fixed_effect_table(m_corr_prior), caption = "Full adjusted model results: correlation absolute error")
+}
+```
+
+```{r correlation-prior-model-plot}
+if (prior_knowledge_available) {
+  plot_participant_with_model(
+    participant_df = corr_participant_prior,
+    estimate_df = corr_prior_estimates,
+    y_col = "mean_abs_error",
+    y_label = "Mean absolute error",
+    title = "Correlation estimation after adding prior knowledge",
+    subtitle = "Colored points are participant means; black points are adjusted condition estimates."
+  )
+}
+```
+
+## Slope model with prior slope knowledge
+
+```{r slope-prior-model-fit}
+if (prior_knowledge_available) {
+  slope_item_prior <- value_item_with_prior |>
+    filter(stat_type == "slope", !is.na(abs_error_no_extreme), !is.na(slope_score_z))
+
+  slope_participant_prior <- value_participant_with_prior |>
+    filter(stat_type == "slope", !is.na(slope_score_z))
+
+  m_slope_prior <- lmer(
+    abs_error_no_extreme ~ lecture_type * practice_type + slope_score_z + (1 | participantId),
+    data = slope_item_prior,
+    REML = FALSE
+  )
+
+  slope_prior_estimates <- condition_estimates(m_slope_prior, "Slope absolute error")
+}
+```
+
+**Model formula**
+
+```text
+abs_error_no_extreme ~ lecture_type * practice_type + slope_score_z + (1 | participantId)
+```
+
+```{r slope-prior-model-output}
+if (prior_knowledge_available) {
+  pretty_table(slope_prior_estimates, caption = "Prior-knowledge-adjusted condition means: slope absolute error")
+  pretty_table(model_fixed_effect_table(m_slope_prior), caption = "Full adjusted model results: slope absolute error")
+}
+```
+
+```{r slope-prior-model-plot}
+if (prior_knowledge_available) {
+  plot_participant_with_model(
+    participant_df = slope_participant_prior,
+    estimate_df = slope_prior_estimates,
+    y_col = "mean_abs_error",
+    y_label = "Mean absolute error",
+    title = "Slope estimation after adding prior knowledge",
+    subtitle = "Colored points are participant means; black points are adjusted condition estimates."
+  )
+}
+```
+
+```{r prior-knowledge-interpretation}
+if (prior_knowledge_available) {
+  cat(
+    '<div class="note-box">',
+    '<p><strong>Working interpretation.</strong> These adjusted models ask whether the condition pattern remains after accounting for participants\' baseline definitions. ',
+    'If the adjusted estimates look similar to the unadjusted estimates, then prior knowledge is probably not the main explanation for the condition pattern. ',
+    'If the adjusted estimates change a lot, then baseline knowledge may be part of the story.</p>',
+    '</div>'
+  )
+}
+```
+
+# Bootstrap uncertainty
+
+The mixed models are useful for estimating condition patterns, but I also include participant-level bootstrap intervals because value-estimation error has a natural participant-level summary.
+
+The bootstrap resamples participants within each condition. For each bootstrap sample, it recomputes condition mean error and condition differences. This does not create more information; it just gives a nonparametric sense of how stable the observed condition differences are.
+
+```{r bootstrap-functions}
+set.seed(20260603)
+N_BOOT <- 5000
+
+bootstrap_condition_means <- function(df, outcome_col = "mean_abs_error", n_boot = 5000) {
+  groups <- levels(df$group)
+
+  map_dfr(seq_len(n_boot), function(iter_id) {
+    map_dfr(groups, function(g) {
+      g_df <- df |>
+        filter(group == g, !is.na(.data[[outcome_col]]))
+
+      sampled <- g_df[sample(seq_len(nrow(g_df)), size = nrow(g_df), replace = TRUE), ]
+
+      tibble(
+        iter = iter_id,
+        group = g,
+        mean_error = mean(sampled[[outcome_col]], na.rm = TRUE)
+      )
+    })
+  }) |>
+    mutate(group = factor(group, levels = GROUP_LEVELS))
+}
+
+summarise_boot_means <- function(boot_df) {
+  boot_df |>
+    group_by(group) |>
+    summarise(
+      mean_error = mean(mean_error, na.rm = TRUE),
+      lower_95 = quantile(mean_error, .025, na.rm = TRUE),
+      upper_95 = quantile(mean_error, .975, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+}
+
+summarise_boot_differences <- function(boot_df) {
+  wide <- boot_df |>
+    pivot_wider(names_from = group, values_from = mean_error)
+
+  pairs <- combn(GROUP_LEVELS, 2, simplify = FALSE)
+
+  map_dfr(pairs, function(pair) {
+    diff_vec <- wide[[pair[1]]] - wide[[pair[2]]]
+
+    tibble(
+      Contrast = paste(pair[1], "-", pair[2]),
+      mean_difference = mean(diff_vec, na.rm = TRUE),
+      lower_95 = quantile(diff_vec, .025, na.rm = TRUE),
+      upper_95 = quantile(diff_vec, .975, na.rm = TRUE)
+    )
+  })
+}
+```
+
+## Correlation bootstrap
+
+```{r correlation-bootstrap}
+boot_corr <- bootstrap_condition_means(corr_participant, n_boot = N_BOOT)
+boot_corr_means <- summarise_boot_means(boot_corr)
+boot_corr_diffs <- summarise_boot_differences(boot_corr)
+
+pretty_table(
+  boot_corr_means |>
+    transmute(
+      Condition = group,
+      `Bootstrap mean error` = round(mean_error, 3),
+      `Lower 95% CI` = round(lower_95, 3),
+      `Upper 95% CI` = round(upper_95, 3)
+    ),
+  caption = "Bootstrap condition means: correlation absolute error"
+)
+
+pretty_table(
+  boot_corr_diffs |>
+    transmute(
+      Contrast,
+      `Mean difference` = round(mean_difference, 3),
+      `Lower 95% CI` = round(lower_95, 3),
+      `Upper 95% CI` = round(upper_95, 3)
+    ),
+  caption = "Bootstrap condition differences: correlation absolute error"
+)
+```
+
+```{r correlation-bootstrap-plot}
+ggplot(boot_corr_diffs, aes(x = mean_difference, y = fct_rev(Contrast))) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.6) +
+  geom_errorbarh(aes(xmin = lower_95, xmax = upper_95), height = 0) +
+  geom_point(size = 2.5) +
+  labs(
+    title = "Bootstrap condition differences: correlation estimation",
+    subtitle = "Positive values mean the first condition had higher error. Intervals crossing 0 are uncertain.",
+    x = "Difference in mean absolute error",
+    y = NULL
+  ) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "gray35")
+  )
+```
+
+## Slope bootstrap
+
+```{r slope-bootstrap}
+boot_slope <- bootstrap_condition_means(slope_participant, n_boot = N_BOOT)
+boot_slope_means <- summarise_boot_means(boot_slope)
+boot_slope_diffs <- summarise_boot_differences(boot_slope)
+
+pretty_table(
+  boot_slope_means |>
+    transmute(
+      Condition = group,
+      `Bootstrap mean error` = round(mean_error, 3),
+      `Lower 95% CI` = round(lower_95, 3),
+      `Upper 95% CI` = round(upper_95, 3)
+    ),
+  caption = "Bootstrap condition means: slope absolute error"
+)
+
+pretty_table(
+  boot_slope_diffs |>
+    transmute(
+      Contrast,
+      `Mean difference` = round(mean_difference, 3),
+      `Lower 95% CI` = round(lower_95, 3),
+      `Upper 95% CI` = round(upper_95, 3)
+    ),
+  caption = "Bootstrap condition differences: slope absolute error"
+)
+```
+
+```{r slope-bootstrap-plot}
+ggplot(boot_slope_diffs, aes(x = mean_difference, y = fct_rev(Contrast))) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.6) +
+  geom_errorbarh(aes(xmin = lower_95, xmax = upper_95), height = 0) +
+  geom_point(size = 2.5) +
+  labs(
+    title = "Bootstrap condition differences: slope estimation",
+    subtitle = "Positive values mean the first condition had higher error. Intervals crossing 0 are uncertain.",
+    x = "Difference in mean absolute error",
+    y = NULL
+  ) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(color = "gray35")
+  )
+```
+
+# Working summary
+
+This report separates correlation and slope value estimation because the two outcomes may reflect different skills. I would read the results in this order:
+
+1. Start with participant-level error plots to see whether condition means are large relative to participant variability.
+2. Use the separate correlation and slope models for the main condition estimates.
+3. Use the prior-knowledge models to check whether baseline definitions explain the pattern.
+4. Use the bootstrap intervals as a robustness check for how stable the condition differences look at the participant level.
+
+A cautious summary should focus on whether the same condition pattern appears across raw participant means, model-estimated means, and bootstrap intervals. If the intervals are wide or cross zero, I would describe the result as uncertain rather than as a strong condition effect.
+
+```{r save-outputs, include=FALSE}
+value_report_outputs <- list(
+  participant_summary = participant_summary,
+  sign_summary = sign_summary,
+  correlation_estimates = corr_estimates,
+  slope_estimates = slope_estimates,
+  pairwise_correlation = pairwise_corr,
+  pairwise_slope = pairwise_slope,
+  bootstrap_correlation_means = boot_corr_means,
+  bootstrap_correlation_differences = boot_corr_diffs,
+  bootstrap_slope_means = boot_slope_means,
+  bootstrap_slope_differences = boot_slope_diffs
+)
+
+saveRDS(
+  value_report_outputs,
+  file.path(data_derived_dir, "value_estimation_analysis_outputs.rds")
+)
+```

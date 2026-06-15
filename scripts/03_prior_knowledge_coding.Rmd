@@ -1,0 +1,325 @@
+---
+title: "03_prior_knowledge_coding"
+author: "Jiarong Feng"
+date: "2026-06-03"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+source("../utils/utils.R")
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5
+)
+
+theme_set(theme_plotwise())
+```
+
+# Overview
+
+This notebook prepares and scores prior-knowledge responses from the pre-survey definition questions.
+
+The prior-knowledge score is based on participants' open-ended definitions of:
+
+1. correlation
+2. slope
+
+The goal is to create a participant-level file:
+
+```text
+data/derived/prior_knowledge_scores.csv
+```
+
+This file will be used in later analysis notebooks as a covariate:
+
+```r
+outcome ~ prior_knowledge_z + lecture_type * practice_type
+```
+
+# 1. Load Definition Responses
+
+```{r load-definition-responses}
+definition_responses <- read_csv(
+  file.path(data_derived_dir, "definition_responses.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+definition_responses_wide <- read_csv(
+  file.path(data_derived_dir, "definition_responses_wide.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+cat("Definition response rows:", nrow(definition_responses), "\n")
+cat("Definition response participants:", n_distinct(definition_responses$participantId), "\n")
+
+definition_responses |>
+  count(responseId, name = "n_rows")
+```
+
+# 2. Coding Rubric
+
+Following the meeting discussion, we use a simple 0 / 0.5 / 1 rubric for each definition response.
+
+Each participant can receive:
+
+- 0 to 1 point for the correlation definition
+- 0 to 1 point for the slope definition
+
+The combined prior-knowledge score ranges from 0 to 2.
+
+## 2.1 Correlation Definition Rubric
+
+```text
+1 = Mostly correct understanding
+    - Defines correlation as a relationship/association between two variables
+    - Or describes how two variables move/change together
+    - May mention strength and/or direction of the relationship
+    - Does not define correlation primarily as causation
+
+0.5 = Partially correct understanding
+    - Mentions a relationship, connection, association, or relatedness, but is vague
+    - Refers to "things," "numbers," or "data sets" without clearly describing variables moving together
+    - Shows some intuitive understanding but misses key ideas such as co-variation, strength, or direction
+    - May include some causal language, but still indicates a relationship between variables
+
+0 = Incorrect or no meaningful understanding
+    - Blank, irrelevant, or "I don't know"
+    - Defines an unrelated concept
+    - Gives a very generic statement such as "something related somehow" without a meaningful statistical relationship
+    - Strongly confuses correlation with an unrelated idea
+```
+
+## 2.2 Slope Definition Rubric
+
+```text
+1 = Mostly correct understanding
+    - Defines slope as rate of change
+    - Or describes change in y for a change in x
+    - Or describes slope as rise over run
+    - Or describes slope as the steepness of a line, with or without direction
+
+0.5 = Partially correct understanding
+    - Mentions direction, trend, incline, angle, or change, but does not clearly define steepness or rate of change
+    - Mentions change in y only, without change relative to x
+    - Refers to a line or two points on a graph, but does not clearly describe rise/run, steepness, or rate of change
+    - Shows some intuitive understanding but is incomplete
+
+0 = Incorrect or no meaningful understanding
+    - Blank, irrelevant, or "I don't know"
+    - Defines an unrelated concept
+    - Confuses slope with distance between points
+    - Strongly incorrect explanation
+```
+
+# 3. Create Coding Sheet
+
+The coded file is `prior_knowledge_coding_sheet_coded.csv`.
+
+```{r create-coding-sheet}
+prior_knowledge_coding_sheet <- definition_responses |>
+  transmute(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId,
+    concept = case_when(
+      responseId == "q-correlation" ~ "correlation",
+      responseId == "q-slope" ~ "slope",
+      TRUE ~ responseId
+    ),
+    responsePrompt,
+    answer,
+    score = NA_real_,
+    coder_notes = NA_character_
+  ) |>
+  arrange(group, participantId, concept)
+
+write_csv(
+  prior_knowledge_coding_sheet,
+  file.path(data_derived_dir, "prior_knowledge_coding_sheet.csv")
+)
+
+cat("Saved blank coding sheet to:",
+    file.path(data_derived_dir, "prior_knowledge_coding_sheet.csv"),
+    "\n")
+```
+
+# 4. Load Coded Prior-Knowledge Sheet
+
+```{r load-coded-sheet}
+coded_path <- file.path(data_derived_dir, "prior_knowledge_coding_sheet_coded.csv")
+
+coded_prior_knowledge_available <- file.exists(coded_path)
+
+if (coded_prior_knowledge_available) {
+  prior_knowledge_coded <- read_csv(
+    coded_path,
+    show_col_types = FALSE
+  ) |>
+    mutate(
+      lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+      practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+      group = factor(group, levels = GROUP_LEVELS),
+      score = as.numeric(score)
+    )
+
+  cat("Loaded coded prior-knowledge sheet.\n")
+  cat("Rows:", nrow(prior_knowledge_coded), "\n")
+  cat("Participants:", n_distinct(prior_knowledge_coded$participantId), "\n")
+
+  prior_knowledge_coded |>
+    count(concept, score, name = "n")
+} else {
+  cat("No coded prior-knowledge sheet found yet.\n")
+  cat("Please manually code prior_knowledge_coding_sheet.csv and save it as prior_knowledge_coding_sheet_coded.csv.\n")
+}
+```
+
+# 5. Build Prior-Knowledge Scores
+
+
+```{r build-prior-knowledge-scores}
+if (coded_prior_knowledge_available) {
+  prior_knowledge_scores <- prior_knowledge_coded |>
+    group_by(participantId, group, lecture_type, practice_type) |>
+    summarise(
+      n_coded_items = sum(!is.na(score)),
+      prior_knowledge_score = sum(score, na.rm = TRUE),
+      prior_knowledge_mean = mean(score, na.rm = TRUE),
+      correlation_definition_score = score[concept == "correlation"][1],
+      slope_definition_score = score[concept == "slope"][1],
+      .groups = "drop"
+    ) |>
+    mutate(
+      prior_knowledge_z = as.numeric(scale(prior_knowledge_score))
+    ) |>
+    arrange(group, participantId)
+
+  prior_knowledge_scores
+
+  cat("Created prior-knowledge scores for",
+      nrow(prior_knowledge_scores),
+      "participants.\n")
+
+  stopifnot(nrow(prior_knowledge_scores) == 80)
+} else {
+  cat("Skipped: coded prior-knowledge sheet is not available yet.\n")
+}
+```
+
+# 6. Prior-Knowledge Descriptives
+
+```{r prior-knowledge-descriptives}
+if (coded_prior_knowledge_available) {
+  prior_knowledge_summary <- prior_knowledge_scores |>
+    group_by(group, lecture_type, practice_type) |>
+    summarise(
+      n_participants = n(),
+      M_prior_knowledge = mean(prior_knowledge_score, na.rm = TRUE),
+      SD_prior_knowledge = sd(prior_knowledge_score, na.rm = TRUE),
+      M_correlation_definition = mean(correlation_definition_score, na.rm = TRUE),
+      M_slope_definition = mean(slope_definition_score, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  prior_knowledge_summary
+} else {
+  cat("Skipped: coded prior-knowledge sheet is not available yet.\n")
+}
+```
+
+```{r plot-prior-knowledge-distribution}
+if (coded_prior_knowledge_available) {
+  p_prior_knowledge_distribution <- ggplot(
+    prior_knowledge_scores,
+    aes(x = group, y = prior_knowledge_score, fill = group)
+  ) +
+    geom_boxplot(
+      alpha = 0.55,
+      width = 0.55,
+      outlier.shape = NA
+    ) +
+    geom_jitter(
+      aes(color = group),
+      width = 0.12,
+      height = 0,
+      alpha = 0.65,
+      size = 1.9
+    ) +
+    stat_summary(
+      fun = mean,
+      geom = "point",
+      shape = 23,
+      size = 3,
+      fill = "white",
+      color = "black"
+    ) +
+    scale_fill_manual(values = GROUP_COLORS) +
+    scale_color_manual(values = GROUP_COLORS) +
+    scale_y_continuous(
+      limits = c(0, 2),
+      breaks = seq(0, 2, 0.5)
+    ) +
+    labs(
+      title = "Prior Knowledge Score by Condition",
+      subtitle = "Each point is one participant; white diamond shows group mean.",
+      x = "Condition",
+      y = "Prior knowledge score"
+    ) +
+    theme(
+      legend.position = "none"
+    )
+
+  p_prior_knowledge_distribution
+
+  save_plot_all(
+    p_prior_knowledge_distribution,
+    "prior_knowledge_distribution_by_condition",
+    width = 7,
+    height = 5
+  )
+} else {
+  cat("Skipped: coded prior-knowledge sheet is not available yet.\n")
+}
+```
+
+# 7. Save Prior-Knowledge Outputs
+
+```{r save-prior-knowledge-outputs}
+if (coded_prior_knowledge_available) {
+  write_csv(
+    prior_knowledge_scores,
+    file.path(data_derived_dir, "prior_knowledge_scores.csv")
+  )
+
+  write_csv(
+    prior_knowledge_summary,
+    file.path(output_dir, "prior_knowledge_summary.csv")
+  )
+
+  cat("Saved prior_knowledge_scores.csv to:", data_derived_dir, "\n")
+  cat("Saved prior_knowledge_summary.csv to:", output_dir, "\n")
+} else {
+  cat("No prior-knowledge scores saved because coded file is not available yet.\n")
+}
+```

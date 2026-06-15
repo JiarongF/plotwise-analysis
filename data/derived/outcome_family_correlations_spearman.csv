@@ -1,0 +1,37 @@
+outcome_x,outcome_y,n,estimate,p_value,method,outcome_x_label,outcome_y_label,abs_estimate,p_value_display,estimate_display
+interest_triggered,interest_maintained,80,0.8063138297482996,1.80676887797363e-19,spearman,Triggered situational interest,Maintained situational interest,0.8063138297482996,&lt; .001,0.81
+interest_triggered,interest_future,80,0.6373249696690796,2.065273828931751e-10,spearman,Triggered situational interest,Future interest,0.6373249696690796,&lt; .001,0.64
+interest_maintained,interest_future,80,0.5917466443766666,7.449868641485761e-9,spearman,Maintained situational interest,Future interest,0.5917466443766666,&lt; .001,0.59
+prior_total,open_response_score,80,0.5173160703899561,8.949039639076852e-7,spearman,Prior knowledge total,Open-response conceptual score,0.5173160703899561,&lt; .001,0.52
+prior_total,interest_future,80,0.49409247959527997,3.1969013685830023e-6,spearman,Prior knowledge total,Future interest,0.49409247959527997,&lt; .001,0.49
+prior_total,value_estimation_performance,80,0.4748230207009359,8.584862116255283e-6,spearman,Prior knowledge total,Value estimation performance,0.4748230207009359,&lt; .001,0.47
+value_estimation_performance,open_response_score,80,0.38953523059606465,3.550189804765385e-4,spearman,Value estimation performance,Open-response conceptual score,0.38953523059606465,&lt; .001,0.39
+prior_total,interest_triggered,80,0.3435871589360145,0.0018063559936270755,spearman,Prior knowledge total,Triggered situational interest,0.3435871589360145,0.002,0.34
+open_response_score,interest_future,80,0.32521889282813166,0.0032449218095093996,spearman,Open-response conceptual score,Future interest,0.32521889282813166,0.003,0.33
+choose_r_pct_correct,interest_maintained,80,0.32520923081436537,0.0032458919649822034,spearman,Choose-r accuracy,Maintained situational interest,0.32520923081436537,0.003,0.33
+prior_total,interest_maintained,80,0.2997110439655452,0.006915286402444551,spearman,Prior knowledge total,Maintained situational interest,0.2997110439655452,0.007,0.30
+prior_total,add_points_correct_direction,80,0.2835556132644502,0.01080855677025151,spearman,Prior knowledge total,Add-points correct direction,0.2835556132644502,0.011,0.28
+open_response_score,interest_maintained,80,0.2550548825711991,0.02241387873899853,spearman,Open-response conceptual score,Maintained situational interest,0.2550548825711991,0.022,0.26
+choose_r_pct_correct,interest_triggered,80,0.25206182945335337,0.02409693825012683,spearman,Choose-r accuracy,Triggered situational interest,0.25206182945335337,0.024,0.25
+value_estimation_performance,add_points_correct_direction,80,0.23756146305371678,0.0338503249856365,spearman,Value estimation performance,Add-points correct direction,0.23756146305371678,0.034,0.24
+open_response_score,interest_triggered,80,0.22315734596825637,0.04662022361100808,spearman,Open-response conceptual score,Triggered situational interest,0.22315734596825637,0.047,0.22
+value_estimation_performance,interest_future,80,0.19919640339545408,0.07649011902147088,spearman,Value estimation performance,Future interest,0.19919640339545408,0.076,0.20
+add_points_correct_direction,interest_future,80,0.1960494450592739,0.08135488728356113,spearman,Add-points correct direction,Future interest,0.1960494450592739,0.081,0.20
+add_points_correct_direction,open_response_score,80,0.18820907509855592,0.09454874268055381,spearman,Add-points correct direction,Open-response conceptual score,0.18820907509855592,0.095,0.19
+add_points_correct_direction,interest_triggered,80,0.16396806179759507,0.14612669797067399,spearman,Add-points correct direction,Triggered situational interest,0.16396806179759507,0.146,0.16
+add_points_correct_direction,interest_maintained,80,0.16107478001513045,0.15347582235975385,spearman,Add-points correct direction,Maintained situational interest,0.16107478001513045,0.153,0.16
+open_response_score,choose_r_pct_correct,80,0.15365024738486513,0.17359081942692076,spearman,Open-response conceptual score,Choose-r accuracy,0.15365024738486513,0.174,0.15
+add_points_correct_direction,choose_r_pct_correct,80,0.14914346471603568,0.18670710185796732,spearman,Add-points correct direction,Choose-r accuracy,0.14914346471603568,0.187,0.15
+value_estimation_performance,interest_maintained,80,0.1478302802055585,0.19066061662253156,spearman,Value estimation performance,Maintained situational interest,0.1478302802055585,0.191,0.15
+add_points_slope_preservation,interest_future,80,-0.12866122521043927,0.25536936196845206,spearman,Add-points slope preservation,Future interest,0.12866122521043927,0.255,-0.13
+add_points_correct_direction,add_points_slope_preservation,80,-0.12155061859427642,0.2827959811771947,spearman,Add-points correct direction,Add-points slope preservation,0.12155061859427642,0.283,-0.12
+choose_r_pct_correct,interest_future,80,0.12091493561312387,0.28533977670376925,spearman,Choose-r accuracy,Future interest,0.12091493561312387,0.285,0.12
+prior_total,choose_r_pct_correct,80,0.09271734585339203,0.4133563490475438,spearman,Prior knowledge total,Choose-r accuracy,0.09271734585339203,0.413,0.09
+add_points_slope_preservation,interest_maintained,80,-0.08188523835432804,0.47023864366672274,spearman,Add-points slope preservation,Maintained situational interest,0.08188523835432804,0.470,-0.08
+value_estimation_performance,choose_r_pct_correct,80,0.07151452973872098,0.528441912359743,spearman,Value estimation performance,Choose-r accuracy,0.07151452973872098,0.528,0.07
+prior_total,add_points_slope_preservation,80,-0.061046750623336546,0.5906272192914956,spearman,Prior knowledge total,Add-points slope preservation,0.061046750623336546,0.591,-0.06
+add_points_slope_preservation,interest_triggered,80,-0.03194285979361857,0.778495022732683,spearman,Add-points slope preservation,Triggered situational interest,0.03194285979361857,0.778,-0.03
+value_estimation_performance,interest_triggered,80,0.02929774508145211,0.7964237839132657,spearman,Value estimation performance,Triggered situational interest,0.02929774508145211,0.796,0.03
+add_points_slope_preservation,open_response_score,80,-0.014857150132443198,0.8959318237464639,spearman,Add-points slope preservation,Open-response conceptual score,0.014857150132443198,0.896,-0.01
+add_points_slope_preservation,choose_r_pct_correct,80,-0.009693177647199604,0.9319943544074772,spearman,Add-points slope preservation,Choose-r accuracy,0.009693177647199604,0.932,-0.01
+value_estimation_performance,add_points_slope_preservation,80,0.008485750619875086,0.9404489104785004,spearman,Value estimation performance,Add-points slope preservation,0.008485750619875086,0.940,0.01

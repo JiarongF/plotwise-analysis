@@ -1,0 +1,27 @@
+{
+    "id": "60B365FF",
+    "path": "~/Downloads/WPI/vis/plotwise-analysis/utils/utils.R",
+    "project_path": "utils/utils.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1780450325753.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "41,1",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1780454089,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1780454089468,
+    "read_only": false,
+    "read_only_alternatives": []
+}

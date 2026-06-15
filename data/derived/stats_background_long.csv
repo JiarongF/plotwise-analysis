@@ -1,0 +1,401 @@
+participantId,group,lecture_type,practice_type,source_file,trialId,responseId,responsePrompt,answer,duration,cleanedDuration,status,percentComplete
+5e0b388b15ef4037cebdecc9,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,141977,141977,completed,100
+5e0b388b15ef4037cebdecc9,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,141977,141977,completed,100
+5e0b388b15ef4037cebdecc9,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,141977,141977,completed,100
+5e0b388b15ef4037cebdecc9,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,141977,141977,completed,100
+5e0b388b15ef4037cebdecc9,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,141977,141977,completed,100
+64012ee6e3f2e59aaa36f718,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,65568,65568,completed,100
+64012ee6e3f2e59aaa36f718,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,65568,65568,completed,100
+64012ee6e3f2e59aaa36f718,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,65568,65568,completed,100
+64012ee6e3f2e59aaa36f718,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,65568,65568,completed,100
+64012ee6e3f2e59aaa36f718,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,65568,65568,completed,100
+6448503fab8d495eb76b51b0,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,62485,62485,completed,100
+6448503fab8d495eb76b51b0,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,62485,62485,completed,100
+6448503fab8d495eb76b51b0,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,62485,62485,completed,100
+6448503fab8d495eb76b51b0,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,62485,62485,completed,100
+6448503fab8d495eb76b51b0,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,62485,62485,completed,100
+65ccca52871269168cc029b5,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,141163,141163,completed,100
+65ccca52871269168cc029b5,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,141163,141163,completed,100
+65ccca52871269168cc029b5,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",12 years ago,141163,141163,completed,100
+65ccca52871269168cc029b5,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,141163,141163,completed,100
+65ccca52871269168cc029b5,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,141163,141163,completed,100
+663eb286696a0a72e8f06e0f,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),104082,104082,completed,100
+663eb286696a0a72e8f06e0f,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,104082,104082,completed,100
+663eb286696a0a72e8f06e0f,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",10 years,104082,104082,completed,100
+663eb286696a0a72e8f06e0f,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,104082,104082,completed,100
+663eb286696a0a72e8f06e0f,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,104082,104082,completed,100
+6985cae61f4f48abdf956530,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),287702,287702,completed,100
+6985cae61f4f48abdf956530,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,287702,287702,completed,100
+6985cae61f4f48abdf956530,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",35 years,287702,287702,completed,100
+6985cae61f4f48abdf956530,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,287702,287702,completed,100
+6985cae61f4f48abdf956530,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,287702,287702,completed,100
+698b661701f0981576ed9dec,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),96106,96106,completed,100
+698b661701f0981576ed9dec,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,96106,96106,completed,100
+698b661701f0981576ed9dec,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20,96106,96106,completed,100
+698b661701f0981576ed9dec,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,96106,96106,completed,100
+698b661701f0981576ed9dec,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,96106,96106,completed,100
+69991d70dd2583a349d03468,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,104280,104280,completed,100
+69991d70dd2583a349d03468,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,104280,104280,completed,100
+69991d70dd2583a349d03468,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,104280,104280,completed,100
+69991d70dd2583a349d03468,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,104280,104280,completed,100
+69991d70dd2583a349d03468,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,104280,104280,completed,100
+699a436ee9032e2b2333d3c1,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),136030,136030,completed,100
+699a436ee9032e2b2333d3c1,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,136030,136030,completed,100
+699a436ee9032e2b2333d3c1,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",2 years ago,136030,136030,completed,100
+699a436ee9032e2b2333d3c1,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,136030,136030,completed,100
+699a436ee9032e2b2333d3c1,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,136030,136030,completed,100
+69b5d74131631c0333607bec,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),120041,120041,completed,100
+69b5d74131631c0333607bec,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,120041,120041,completed,100
+69b5d74131631c0333607bec,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",5 months ago,120041,120041,completed,100
+69b5d74131631c0333607bec,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,120041,120041,completed,100
+69b5d74131631c0333607bec,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,120041,120041,completed,100
+69bad0d8d699e854ef8e8184,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),147643,147643,completed,100
+69bad0d8d699e854ef8e8184,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,147643,147643,completed,100
+69bad0d8d699e854ef8e8184,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",Mathematical Statistics II,147643,147643,completed,100
+69bad0d8d699e854ef8e8184,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,147643,147643,completed,100
+69bad0d8d699e854ef8e8184,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,147643,147643,completed,100
+69c440c36f9c43fe1266a56b,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,41261,41261,completed,100
+69c440c36f9c43fe1266a56b,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,41261,41261,completed,100
+69c440c36f9c43fe1266a56b,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",4 years ago,41261,41261,completed,100
+69c440c36f9c43fe1266a56b,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",C,41261,41261,completed,100
+69c440c36f9c43fe1266a56b,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,41261,41261,completed,100
+69c59eeb6b373bc928a1aba9,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,85621,85621,completed,100
+69c59eeb6b373bc928a1aba9,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,85621,85621,completed,100
+69c59eeb6b373bc928a1aba9,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,85621,85621,completed,100
+69c59eeb6b373bc928a1aba9,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,85621,85621,completed,100
+69c59eeb6b373bc928a1aba9,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,85621,85621,completed,100
+69d5bc72bf90388665397b6e,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),142306,142306,completed,100
+69d5bc72bf90388665397b6e,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,142306,142306,completed,100
+69d5bc72bf90388665397b6e,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",1 year ago,142306,142306,completed,100
+69d5bc72bf90388665397b6e,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",C,142306,142306,completed,100
+69d5bc72bf90388665397b6e,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,142306,142306,completed,100
+69e293f57120947b9a8408de,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),126881,126881,completed,100
+69e293f57120947b9a8408de,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,126881,126881,completed,100
+69e293f57120947b9a8408de,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,126881,126881,completed,100
+69e293f57120947b9a8408de,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,126881,126881,completed,100
+69e293f57120947b9a8408de,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",4,126881,126881,completed,100
+69e7ac40430645b3492b7f1b,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),78506,78506,completed,100
+69e7ac40430645b3492b7f1b,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,78506,78506,completed,100
+69e7ac40430645b3492b7f1b,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",over 4 years,78506,78506,completed,100
+69e7ac40430645b3492b7f1b,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,78506,78506,completed,100
+69e7ac40430645b3492b7f1b,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,78506,78506,completed,100
+69e96cde65aa9df15260c718,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,78501,78501,completed,100
+69e96cde65aa9df15260c718,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,78501,78501,completed,100
+69e96cde65aa9df15260c718,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",11 years,78501,78501,completed,100
+69e96cde65aa9df15260c718,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,78501,78501,completed,100
+69e96cde65aa9df15260c718,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,78501,78501,completed,100
+69e9f6a993985bfec2114d70,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,52906,52906,completed,100
+69e9f6a993985bfec2114d70,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,52906,52906,completed,100
+69e9f6a993985bfec2114d70,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,52906,52906,completed,100
+69e9f6a993985bfec2114d70,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,52906,52906,completed,100
+69e9f6a993985bfec2114d70,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,52906,52906,completed,100
+69eae5f4f5ce43d5a34d388f,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,56643,56643,completed,100
+69eae5f4f5ce43d5a34d388f,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,56643,56643,completed,100
+69eae5f4f5ce43d5a34d388f,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,56643,56643,completed,100
+69eae5f4f5ce43d5a34d388f,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,56643,56643,completed,100
+69eae5f4f5ce43d5a34d388f,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,56643,56643,completed,100
+69ecc0e01df33a8b5fa811f2,CC,Control,Control,main-control-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,60036,60036,completed,100
+69ecc0e01df33a8b5fa811f2,CC,Control,Control,main-control-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,60036,60036,completed,100
+69ecc0e01df33a8b5fa811f2,CC,Control,Control,main-control-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,60036,60036,completed,100
+69ecc0e01df33a8b5fa811f2,CC,Control,Control,main-control-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,60036,60036,completed,100
+69ecc0e01df33a8b5fa811f2,CC,Control,Control,main-control-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,60036,60036,completed,100
+5d88db42c1d06e001a1fdcab,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,71097,71097,completed,100
+5d88db42c1d06e001a1fdcab,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,71097,71097,completed,100
+5d88db42c1d06e001a1fdcab,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,71097,71097,completed,100
+5d88db42c1d06e001a1fdcab,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,71097,71097,completed,100
+5d88db42c1d06e001a1fdcab,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,71097,71097,completed,100
+66b68e2b2c21a7ed557cf866,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),105857,105857,completed,100
+66b68e2b2c21a7ed557cf866,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,105857,105857,completed,100
+66b68e2b2c21a7ed557cf866,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",40 years ago,105857,105857,completed,100
+66b68e2b2c21a7ed557cf866,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,105857,105857,completed,100
+66b68e2b2c21a7ed557cf866,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,105857,105857,completed,100
+66ba9cd5343e159bdc8691ad,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,73762,73762,completed,100
+66ba9cd5343e159bdc8691ad,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,73762,73762,completed,100
+66ba9cd5343e159bdc8691ad,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,73762,73762,completed,100
+66ba9cd5343e159bdc8691ad,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,73762,73762,completed,100
+66ba9cd5343e159bdc8691ad,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,73762,73762,completed,100
+66c4f3cb14cbfc4db836bd4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),93679,93679,completed,100
+66c4f3cb14cbfc4db836bd4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,93679,93679,completed,100
+66c4f3cb14cbfc4db836bd4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",18 years,93679,93679,completed,100
+66c4f3cb14cbfc4db836bd4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,93679,93679,completed,100
+66c4f3cb14cbfc4db836bd4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,93679,93679,completed,100
+676276312d87ec9601be7d5c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),254233,254233,completed,100
+676276312d87ec9601be7d5c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,254233,254233,completed,100
+676276312d87ec9601be7d5c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",10,254233,254233,completed,100
+676276312d87ec9601be7d5c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",C,254233,254233,completed,100
+676276312d87ec9601be7d5c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,254233,254233,completed,100
+67a8ef6331f586a361a8ec33,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),119595,119595,completed,100
+67a8ef6331f586a361a8ec33,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,119595,119595,completed,100
+67a8ef6331f586a361a8ec33,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",5 years,119595,119595,completed,100
+67a8ef6331f586a361a8ec33,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,119595,119595,completed,100
+67a8ef6331f586a361a8ec33,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,119595,119595,completed,100
+67eec9e200be02ad51843d9b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,125071,125071,completed,100
+67eec9e200be02ad51843d9b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,125071,125071,completed,100
+67eec9e200be02ad51843d9b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",N/A,125071,125071,completed,100
+67eec9e200be02ad51843d9b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,125071,125071,completed,100
+67eec9e200be02ad51843d9b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,125071,125071,completed,100
+6949ca3d2fa32d8101dea6a7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),210575,210575,completed,100
+6949ca3d2fa32d8101dea6a7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,210575,210575,completed,100
+6949ca3d2fa32d8101dea6a7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",4 years ago,210575,210575,completed,100
+6949ca3d2fa32d8101dea6a7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,210575,210575,completed,100
+6949ca3d2fa32d8101dea6a7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,210575,210575,completed,100
+695bbdf21fd961458dd7390f,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),60553,60553,completed,100
+695bbdf21fd961458dd7390f,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,60553,60553,completed,100
+695bbdf21fd961458dd7390f,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20,60553,60553,completed,100
+695bbdf21fd961458dd7390f,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,60553,60553,completed,100
+695bbdf21fd961458dd7390f,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,60553,60553,completed,100
+698cb3f09ab87f038b6e3e77,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",Graduate school,85030,85030,completed,100
+698cb3f09ab87f038b6e3e77,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,85030,85030,completed,100
+698cb3f09ab87f038b6e3e77,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",Currently,85030,85030,completed,100
+698cb3f09ab87f038b6e3e77,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,85030,85030,completed,100
+698cb3f09ab87f038b6e3e77,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,85030,85030,completed,100
+698ce998c9bcb9df4a355d8e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,88446,88446,completed,100
+698ce998c9bcb9df4a355d8e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,88446,88446,completed,100
+698ce998c9bcb9df4a355d8e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,88446,88446,completed,100
+698ce998c9bcb9df4a355d8e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,88446,88446,completed,100
+698ce998c9bcb9df4a355d8e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,88446,88446,completed,100
+69936eccf50fa8ffd94e8b4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,59650,59650,completed,100
+69936eccf50fa8ffd94e8b4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,59650,59650,completed,100
+69936eccf50fa8ffd94e8b4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,59650,59650,completed,100
+69936eccf50fa8ffd94e8b4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,59650,59650,completed,100
+69936eccf50fa8ffd94e8b4e,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,59650,59650,completed,100
+69b05804c1d36d9f04ffefe7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),93637,93637,completed,100
+69b05804c1d36d9f04ffefe7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,93637,93637,completed,100
+69b05804c1d36d9f04ffefe7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",4 years ago,93637,93637,completed,100
+69b05804c1d36d9f04ffefe7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,93637,93637,completed,100
+69b05804c1d36d9f04ffefe7,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,93637,93637,completed,100
+69b64051157b8364c2a0afa6,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,46750,46750,completed,100
+69b64051157b8364c2a0afa6,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,46750,46750,completed,100
+69b64051157b8364c2a0afa6,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,46750,46750,completed,100
+69b64051157b8364c2a0afa6,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,46750,46750,completed,100
+69b64051157b8364c2a0afa6,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,46750,46750,completed,100
+69baaee936d901eb8e30d457,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),64153,64153,completed,100
+69baaee936d901eb8e30d457,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,64153,64153,completed,100
+69baaee936d901eb8e30d457,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",10 years,64153,64153,completed,100
+69baaee936d901eb8e30d457,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,64153,64153,completed,100
+69baaee936d901eb8e30d457,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,64153,64153,completed,100
+69dbb8b904dd49c3acdc5571,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,99770,99770,completed,100
+69dbb8b904dd49c3acdc5571,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,99770,99770,completed,100
+69dbb8b904dd49c3acdc5571,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,99770,99770,completed,100
+69dbb8b904dd49c3acdc5571,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,99770,99770,completed,100
+69dbb8b904dd49c3acdc5571,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,99770,99770,completed,100
+69defab23a249a0b519c8f6d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,41938,41938,completed,100
+69defab23a249a0b519c8f6d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,41938,41938,completed,100
+69defab23a249a0b519c8f6d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,41938,41938,completed,100
+69defab23a249a0b519c8f6d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,41938,41938,completed,100
+69defab23a249a0b519c8f6d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,41938,41938,completed,100
+69e67f20876c8dcd0f10256d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,172964,172964,completed,100
+69e67f20876c8dcd0f10256d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,172964,172964,completed,100
+69e67f20876c8dcd0f10256d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",2 years ago,172964,172964,completed,100
+69e67f20876c8dcd0f10256d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,172964,172964,completed,100
+69e67f20876c8dcd0f10256d,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,172964,172964,completed,100
+69e696140295abac7fb9c28b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),161198,161198,completed,100
+69e696140295abac7fb9c28b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,161198,161198,completed,100
+69e696140295abac7fb9c28b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20 years ago,161198,161198,completed,100
+69e696140295abac7fb9c28b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,161198,161198,completed,100
+69e696140295abac7fb9c28b,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,161198,161198,completed,100
+69ee7fcbc2188c5c2203fd8c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),122434,122434,completed,100
+69ee7fcbc2188c5c2203fd8c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,122434,122434,completed,100
+69ee7fcbc2188c5c2203fd8c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",17 years ago,122434,122434,completed,100
+69ee7fcbc2188c5c2203fd8c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,122434,122434,completed,100
+69ee7fcbc2188c5c2203fd8c,CP,Control,PlotWise,main-control-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",3,122434,122434,completed,100
+5cbcfce214b3cb0015f03471,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,119834,119834,completed,100
+5cbcfce214b3cb0015f03471,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,119834,119834,completed,100
+5cbcfce214b3cb0015f03471,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,119834,119834,completed,100
+5cbcfce214b3cb0015f03471,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,119834,119834,completed,100
+5cbcfce214b3cb0015f03471,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,119834,119834,completed,100
+65b6bb9487ad05cb475fbba5,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),153648,153648,completed,100
+65b6bb9487ad05cb475fbba5,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,153648,153648,completed,100
+65b6bb9487ad05cb475fbba5,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",35 years ago,153648,153648,completed,100
+65b6bb9487ad05cb475fbba5,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,153648,153648,completed,100
+65b6bb9487ad05cb475fbba5,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,153648,153648,completed,100
+666911bcb2b5e2fc50ace5e3,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),107351,107351,completed,100
+666911bcb2b5e2fc50ace5e3,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,107351,107351,completed,100
+666911bcb2b5e2fc50ace5e3,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",7 years ago,107351,107351,completed,100
+666911bcb2b5e2fc50ace5e3,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,107351,107351,completed,100
+666911bcb2b5e2fc50ace5e3,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,107351,107351,completed,100
+66d88375799e00b593a8655f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,72408,72408,completed,100
+66d88375799e00b593a8655f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,72408,72408,completed,100
+66d88375799e00b593a8655f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,72408,72408,completed,100
+66d88375799e00b593a8655f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,72408,72408,completed,100
+66d88375799e00b593a8655f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,72408,72408,completed,100
+6706bc0d8c98b64939838b2e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,71400,71400,completed,100
+6706bc0d8c98b64939838b2e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,71400,71400,completed,100
+6706bc0d8c98b64939838b2e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",never,71400,71400,completed,100
+6706bc0d8c98b64939838b2e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,71400,71400,completed,100
+6706bc0d8c98b64939838b2e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,71400,71400,completed,100
+69419e9576aea13f332266ff,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),91079,91079,completed,100
+69419e9576aea13f332266ff,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,91079,91079,completed,100
+69419e9576aea13f332266ff,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",1 year ago,91079,91079,completed,100
+69419e9576aea13f332266ff,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,91079,91079,completed,100
+69419e9576aea13f332266ff,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,91079,91079,completed,100
+69442e09aea78e142db2e54f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,106115,106115,completed,100
+69442e09aea78e142db2e54f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,106115,106115,completed,100
+69442e09aea78e142db2e54f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",3 years ago.,106115,106115,completed,100
+69442e09aea78e142db2e54f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,106115,106115,completed,100
+69442e09aea78e142db2e54f,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,106115,106115,completed,100
+69457dc95341cec41fca5695,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,110357,110357,completed,100
+69457dc95341cec41fca5695,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,110357,110357,completed,100
+69457dc95341cec41fca5695,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",25,110357,110357,completed,100
+69457dc95341cec41fca5695,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,110357,110357,completed,100
+69457dc95341cec41fca5695,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,110357,110357,completed,100
+696a7d8e7ecb7691c3c716e0,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,69567,69567,completed,100
+696a7d8e7ecb7691c3c716e0,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,69567,69567,completed,100
+696a7d8e7ecb7691c3c716e0,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,69567,69567,completed,100
+696a7d8e7ecb7691c3c716e0,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,69567,69567,completed,100
+696a7d8e7ecb7691c3c716e0,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,69567,69567,completed,100
+69a1b3b7923c10f1c34bb345,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,81017,81017,completed,100
+69a1b3b7923c10f1c34bb345,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,81017,81017,completed,100
+69a1b3b7923c10f1c34bb345,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",6,81017,81017,completed,100
+69a1b3b7923c10f1c34bb345,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,81017,81017,completed,100
+69a1b3b7923c10f1c34bb345,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,81017,81017,completed,100
+69afafce3f7970642a6dc071,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),71036,71036,completed,100
+69afafce3f7970642a6dc071,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,71036,71036,completed,100
+69afafce3f7970642a6dc071,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",10 years,71036,71036,completed,100
+69afafce3f7970642a6dc071,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",C,71036,71036,completed,100
+69afafce3f7970642a6dc071,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,71036,71036,completed,100
+69b2f88353d348d7b5d823f2,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),68877,68877,completed,100
+69b2f88353d348d7b5d823f2,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,68877,68877,completed,100
+69b2f88353d348d7b5d823f2,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",25,68877,68877,completed,100
+69b2f88353d348d7b5d823f2,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,68877,68877,completed,100
+69b2f88353d348d7b5d823f2,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,68877,68877,completed,100
+69b539c1ef7f025074f1dc49,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),114799,114799,completed,100
+69b539c1ef7f025074f1dc49,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,114799,114799,completed,100
+69b539c1ef7f025074f1dc49,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",5,114799,114799,completed,100
+69b539c1ef7f025074f1dc49,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,114799,114799,completed,100
+69b539c1ef7f025074f1dc49,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,114799,114799,completed,100
+69bcb74d06491ceeaf0fe09c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),114026,114026,completed,100
+69bcb74d06491ceeaf0fe09c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,114026,114026,completed,100
+69bcb74d06491ceeaf0fe09c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",7 years,114026,114026,completed,100
+69bcb74d06491ceeaf0fe09c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,114026,114026,completed,100
+69bcb74d06491ceeaf0fe09c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,114026,114026,completed,100
+69c13c0ad9ea03501703d527,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),82816,82816,completed,100
+69c13c0ad9ea03501703d527,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,82816,82816,completed,100
+69c13c0ad9ea03501703d527,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",5 years ago,82816,82816,completed,100
+69c13c0ad9ea03501703d527,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,82816,82816,completed,100
+69c13c0ad9ea03501703d527,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,82816,82816,completed,100
+69e50d6c5df8f2861c76a92e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,52636,52636,completed,100
+69e50d6c5df8f2861c76a92e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,52636,52636,completed,100
+69e50d6c5df8f2861c76a92e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,52636,52636,completed,100
+69e50d6c5df8f2861c76a92e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,52636,52636,completed,100
+69e50d6c5df8f2861c76a92e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,52636,52636,completed,100
+69e7c4d7520b1a91f7a60d9e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),37974,37974,completed,100
+69e7c4d7520b1a91f7a60d9e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,37974,37974,completed,100
+69e7c4d7520b1a91f7a60d9e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",1,37974,37974,completed,100
+69e7c4d7520b1a91f7a60d9e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,37974,37974,completed,100
+69e7c4d7520b1a91f7a60d9e,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,37974,37974,completed,100
+69e913482ae5864d44e6387c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),50281,50281,completed,100
+69e913482ae5864d44e6387c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,50281,50281,completed,100
+69e913482ae5864d44e6387c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",1 year ago,50281,50281,completed,100
+69e913482ae5864d44e6387c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,50281,50281,completed,100
+69e913482ae5864d44e6387c,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",3,50281,50281,completed,100
+69ea51d8e9e2fcbd7e2a598a,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),181766,181766,completed,100
+69ea51d8e9e2fcbd7e2a598a,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,181766,181766,completed,100
+69ea51d8e9e2fcbd7e2a598a,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",1 year ago,181766,181766,completed,100
+69ea51d8e9e2fcbd7e2a598a,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,181766,181766,completed,100
+69ea51d8e9e2fcbd7e2a598a,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,181766,181766,completed,100
+69eb5bea0282ba37e5a2bae6,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),34628,34628,completed,100
+69eb5bea0282ba37e5a2bae6,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,34628,34628,completed,100
+69eb5bea0282ba37e5a2bae6,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",6 years ago,34628,34628,completed,100
+69eb5bea0282ba37e5a2bae6,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",C,34628,34628,completed,100
+69eb5bea0282ba37e5a2bae6,PC,PlotWise,Control,main-plotwise-control.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,34628,34628,completed,100
+58a5cf959e040a0001399f07,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,85732,85732,completed,100
+58a5cf959e040a0001399f07,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,85732,85732,completed,100
+58a5cf959e040a0001399f07,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,85732,85732,completed,100
+58a5cf959e040a0001399f07,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,85732,85732,completed,100
+58a5cf959e040a0001399f07,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,85732,85732,completed,100
+5e6439d24659d01c218bcbc9,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,27802,27802,completed,100
+5e6439d24659d01c218bcbc9,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,27802,27802,completed,100
+5e6439d24659d01c218bcbc9,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",10 years ago,27802,27802,completed,100
+5e6439d24659d01c218bcbc9,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,27802,27802,completed,100
+5e6439d24659d01c218bcbc9,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,27802,27802,completed,100
+62b9f3589e8d599c11a2f9fc,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),212050,212050,completed,100
+62b9f3589e8d599c11a2f9fc,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,212050,212050,completed,100
+62b9f3589e8d599c11a2f9fc,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20,212050,212050,completed,100
+62b9f3589e8d599c11a2f9fc,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",I don't remember,212050,212050,completed,100
+62b9f3589e8d599c11a2f9fc,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,212050,212050,completed,100
+6413bee5234ad46e9fc4ba75,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),75604,75604,completed,100
+6413bee5234ad46e9fc4ba75,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,75604,75604,completed,100
+6413bee5234ad46e9fc4ba75,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",33 years ago,75604,75604,completed,100
+6413bee5234ad46e9fc4ba75,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,75604,75604,completed,100
+6413bee5234ad46e9fc4ba75,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,75604,75604,completed,100
+660db7a0e45001b3e976309e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),46242,46242,completed,100
+660db7a0e45001b3e976309e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,46242,46242,completed,100
+660db7a0e45001b3e976309e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20 years,46242,46242,completed,100
+660db7a0e45001b3e976309e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,46242,46242,completed,100
+660db7a0e45001b3e976309e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,46242,46242,completed,100
+66632c96e56c2cc87923bf78,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),139040,139040,completed,100
+66632c96e56c2cc87923bf78,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,139040,139040,completed,100
+66632c96e56c2cc87923bf78,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?","in college, over 25 years",139040,139040,completed,100
+66632c96e56c2cc87923bf78,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,139040,139040,completed,100
+66632c96e56c2cc87923bf78,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",2,139040,139040,completed,100
+66abc79f0812c1f89a25adfb,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,83390,83390,completed,100
+66abc79f0812c1f89a25adfb,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,83390,83390,completed,100
+66abc79f0812c1f89a25adfb,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,83390,83390,completed,100
+66abc79f0812c1f89a25adfb,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,83390,83390,completed,100
+66abc79f0812c1f89a25adfb,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,83390,83390,completed,100
+67204af156acf704058c6e66,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,38911,38911,completed,100
+67204af156acf704058c6e66,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,38911,38911,completed,100
+67204af156acf704058c6e66,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",11,38911,38911,completed,100
+67204af156acf704058c6e66,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,38911,38911,completed,100
+67204af156acf704058c6e66,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,38911,38911,completed,100
+6941f12abe152014b1fc152a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),69049,69049,completed,100
+6941f12abe152014b1fc152a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,69049,69049,completed,100
+6941f12abe152014b1fc152a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",8 years ago,69049,69049,completed,100
+6941f12abe152014b1fc152a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",C,69049,69049,completed,100
+6941f12abe152014b1fc152a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,69049,69049,completed,100
+697923c3e017b9ae8d36422f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,114405,114405,completed,100
+697923c3e017b9ae8d36422f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,114405,114405,completed,100
+697923c3e017b9ae8d36422f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,114405,114405,completed,100
+697923c3e017b9ae8d36422f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,114405,114405,completed,100
+697923c3e017b9ae8d36422f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,114405,114405,completed,100
+69838c967c78c6ef18426fba,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),63522,63522,completed,100
+69838c967c78c6ef18426fba,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,63522,63522,completed,100
+69838c967c78c6ef18426fba,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",19 years ago,63522,63522,completed,100
+69838c967c78c6ef18426fba,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,63522,63522,completed,100
+69838c967c78c6ef18426fba,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,63522,63522,completed,100
+69a1a10db5dd5cc2b0fd9120,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,106813,106813,completed,100
+69a1a10db5dd5cc2b0fd9120,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,106813,106813,completed,100
+69a1a10db5dd5cc2b0fd9120,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",8 years ago,106813,106813,completed,100
+69a1a10db5dd5cc2b0fd9120,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,106813,106813,completed,100
+69a1a10db5dd5cc2b0fd9120,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,106813,106813,completed,100
+69a273aa8ea44b93a7c318fa,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),86850,86850,in progress,100
+69a273aa8ea44b93a7c318fa,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,86850,86850,in progress,100
+69a273aa8ea44b93a7c318fa,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",5,86850,86850,in progress,100
+69a273aa8ea44b93a7c318fa,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,86850,86850,in progress,100
+69a273aa8ea44b93a7c318fa,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,86850,86850,in progress,100
+69d42f9c4bd9803351e64126,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,37261,37261,completed,100
+69d42f9c4bd9803351e64126,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,37261,37261,completed,100
+69d42f9c4bd9803351e64126,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",10 years ago,37261,37261,completed,100
+69d42f9c4bd9803351e64126,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,37261,37261,completed,100
+69d42f9c4bd9803351e64126,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,37261,37261,completed,100
+69d6384637b632d34190012d,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,55074,55074,completed,100
+69d6384637b632d34190012d,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,55074,55074,completed,100
+69d6384637b632d34190012d,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,55074,55074,completed,100
+69d6384637b632d34190012d,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,55074,55074,completed,100
+69d6384637b632d34190012d,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,55074,55074,completed,100
+69e5784c8279ec7791f5c7c2,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),108080,108080,completed,100
+69e5784c8279ec7791f5c7c2,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,108080,108080,completed,100
+69e5784c8279ec7791f5c7c2,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",Currently in one,108080,108080,completed,100
+69e5784c8279ec7791f5c7c2,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,108080,108080,completed,100
+69e5784c8279ec7791f5c7c2,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",4,108080,108080,completed,100
+69e69bafa189bbf97f972a9a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),165960,165960,completed,100
+69e69bafa189bbf97f972a9a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,165960,165960,completed,100
+69e69bafa189bbf97f972a9a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20 years ago,165960,165960,completed,100
+69e69bafa189bbf97f972a9a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,165960,165960,completed,100
+69e69bafa189bbf97f972a9a,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,165960,165960,completed,100
+69e8b8d3a88ba7b372cefe9f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,79623,79623,completed,100
+69e8b8d3a88ba7b372cefe9f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,No,79623,79623,completed,100
+69e8b8d3a88ba7b372cefe9f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",NA,79623,79623,completed,100
+69e8b8d3a88ba7b372cefe9f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",NA,79623,79623,completed,100
+69e8b8d3a88ba7b372cefe9f,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",NA,79623,79623,completed,100
+69ed0abf57b9596c4f695608,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,57952,57952,completed,100
+69ed0abf57b9596c4f695608,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,57952,57952,completed,100
+69ed0abf57b9596c4f695608,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",12 Years,57952,57952,completed,100
+69ed0abf57b9596c4f695608,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",B,57952,57952,completed,100
+69ed0abf57b9596c4f695608,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,57952,57952,completed,100
+69ed3447bad8df1a3928ef2e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,142836,142836,completed,100
+69ed3447bad8df1a3928ef2e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-taken,Have you ever taken a statistics class?,Yes,142836,142836,completed,100
+69ed3447bad8df1a3928ef2e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",3,142836,142836,completed,100
+69ed3447bad8df1a3928ef2e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-grade,"If yes, what grade did you get in the class?",A,142836,142836,completed,100
+69ed3447bad8df1a3928ef2e,PP,PlotWise,PlotWise,main-plotwise-plotwise.csv,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",1,142836,142836,completed,100

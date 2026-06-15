@@ -1,0 +1,5 @@
+group,source_file,n_rows
+CC,main-control-control.csv,4420
+CP,main-control-plotwise.csv,3020
+PC,main-plotwise-control.csv,4420
+PP,main-plotwise-plotwise.csv,3020

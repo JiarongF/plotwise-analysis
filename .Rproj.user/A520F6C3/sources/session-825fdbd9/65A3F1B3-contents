@@ -1,0 +1,1021 @@
+---
+title: "Outcome-Family Correlations"
+author: "Jiarong Feng"
+date: "2026-06-11"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+    code_folding: hide
+    theme: readable
+    df_print: paged
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+# This report asks whether the different outcome families seem to capture
+# the same participant-level construct or different aspects of learning.
+
+if (file.exists("../utils/utils.R")) {
+  source("../utils/utils.R")
+}
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+  library(kableExtra)
+  library(scales)
+})
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5,
+  dpi = 150,
+  results = "asis"
+)
+
+if (exists("theme_plotwise")) {
+  theme_set(theme_plotwise())
+} else {
+  theme_set(theme_bw(base_size = 13))
+}
+
+GROUP_LEVELS <- c("CC", "CP", "PC", "PP")
+GROUP_COLORS <- c(
+  "CC" = "#CC79A7",
+  "CP" = "#0072B2",
+  "PC" = "#D55E00",
+  "PP" = "#009E73"
+)
+
+`%||%` <- function(x, y) {
+  if (is.null(x) || length(x) == 0 || all(is.na(x))) y else x
+}
+
+find_first_file <- function(paths) {
+  hit <- paths[file.exists(paths)]
+  if (length(hit) == 0) return(NA_character_)
+  hit[[1]]
+}
+
+find_first_dir <- function(paths) {
+  hit <- paths[dir.exists(paths)]
+  if (length(hit) == 0) return(NA_character_)
+  hit[[1]]
+}
+
+read_csv_or_empty <- function(path) {
+  if (is.na(path) || !file.exists(path)) return(tibble())
+  readr::read_csv(path, show_col_types = FALSE)
+}
+
+first_existing_col <- function(df, candidates) {
+  hit <- candidates[candidates %in% names(df)]
+  if (length(hit) == 0) return(NA_character_)
+  hit[[1]]
+}
+
+pretty_table <- function(x, digits = 3, caption = NULL) {
+  x_display <- x |>
+    mutate(across(where(is.numeric), ~ round(.x, digits)))
+
+  out <- knitr::kable(
+    x_display,
+    format = "html",
+    escape = FALSE,
+    caption = caption
+  ) |>
+    kableExtra::kable_styling(
+      full_width = FALSE,
+      bootstrap_options = c("striped", "hover", "condensed")
+    )
+
+  cat("\n", as.character(out), "\n")
+  invisible(out)
+}
+
+fmt_p <- function(p) {
+  case_when(
+    is.na(p) ~ NA_character_,
+    p < .001 ~ "&lt; .001",
+    TRUE ~ formatC(p, format = "f", digits = 3)
+  )
+}
+
+fmt_r <- function(x) {
+  ifelse(is.na(x), NA_character_, formatC(x, format = "f", digits = 2))
+}
+
+fmt_n <- function(x) {
+  ifelse(is.na(x), NA_character_, as.character(as.integer(x)))
+}
+
+make_group_factors <- function(df) {
+  df |>
+    mutate(
+      group = factor(group, levels = GROUP_LEVELS),
+      lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+      practice_type = factor(practice_type, levels = c("Control", "PlotWise"))
+    )
+}
+
+label_outcome <- function(x) {
+  recode(
+    x,
+    prior_total = "Prior knowledge total",
+    value_estimation_performance = "Value estimation performance",
+    value_correlation_performance = "Correlation estimation performance",
+    value_slope_performance = "Slope estimation performance",
+    add_points_correct_direction = "Add-points correct direction",
+    add_points_slope_preservation = "Add-points slope preservation",
+    add_points_intended_delta_r = "Add-points intended Δr",
+    open_response_score = "Open-response conceptual score",
+    open_response_mean = "Open-response mean score",
+    choose_r_pct_correct = "Choose-r accuracy",
+    interest_triggered = "Triggered situational interest",
+    interest_maintained = "Maintained situational interest",
+    interest_future = "Future interest",
+    .default = x
+  )
+}
+
+calc_pairwise_cor <- function(df, vars, method = "spearman") {
+  pairs <- combn(vars, 2, simplify = FALSE)
+
+  map_dfr(pairs, function(pair) {
+    x_name <- pair[[1]]
+    y_name <- pair[[2]]
+
+    d <- df |>
+      select(all_of(c(x_name, y_name))) |>
+      filter(!is.na(.data[[x_name]]), !is.na(.data[[y_name]]))
+
+    if (nrow(d) < 3) {
+      return(tibble(
+        outcome_x = x_name,
+        outcome_y = y_name,
+        n = nrow(d),
+        estimate = NA_real_,
+        p_value = NA_real_,
+        method = method
+      ))
+    }
+
+    test <- suppressWarnings(
+      cor.test(
+        d[[x_name]],
+        d[[y_name]],
+        method = method,
+        exact = FALSE
+      )
+    )
+
+    tibble(
+      outcome_x = x_name,
+      outcome_y = y_name,
+      n = nrow(d),
+      estimate = unname(test$estimate),
+      p_value = test$p.value,
+      method = method
+    )
+  })
+}
+
+make_correlation_matrix <- function(pairwise_df, vars) {
+  diag_df <- tibble(
+    outcome_x = vars,
+    outcome_y = vars,
+    estimate = 1
+  )
+
+  mirrored <- pairwise_df |>
+    select(outcome_x, outcome_y, estimate) |>
+    bind_rows(
+      pairwise_df |>
+        transmute(outcome_x = outcome_y, outcome_y = outcome_x, estimate = estimate)
+    ) |>
+    bind_rows(diag_df) |>
+    mutate(
+      outcome_x = factor(outcome_x, levels = vars),
+      outcome_y = factor(outcome_y, levels = rev(vars)),
+      outcome_x_label = factor(label_outcome(as.character(outcome_x)), levels = label_outcome(vars)),
+      outcome_y_label = factor(label_outcome(as.character(outcome_y)), levels = rev(label_outcome(vars)))
+    )
+
+  mirrored
+}
+```
+
+# Overview
+
+This report examines participant-level correlations across the main outcome families. The goal is not to test the experimental conditions again. Instead, the goal is to ask whether different outcomes appear to measure the same kind of learning, or whether they capture different aspects of participants' understanding.
+
+The main outcomes are organized so that higher values are easier to interpret as **better performance or stronger interest**. For value estimation, the original score is an error score, so I reverse its direction by multiplying mean absolute error by -1. In other words, higher value-estimation performance means **lower estimation error**.
+
+# 1. Load participant-level outcomes
+
+```{r locate-files}
+data_derived_dir <- find_first_dir(c(
+  "../data/derived",
+  "data/derived",
+  "../../data/derived"
+))
+
+if (is.na(data_derived_dir)) {
+  stop("Could not find data/derived folder. Current working directory: ", getwd())
+}
+
+participant_file <- find_first_file(c(
+  file.path(data_derived_dir, "participant_condition_index.csv"),
+  file.path(data_derived_dir, "participant_outcomes.csv")
+))
+
+prior_file <- find_first_file(c(
+  file.path(data_derived_dir, "prior_knowledge_coding_sheet_coded.csv"),
+  file.path(data_derived_dir, "prior_knowledge_participant_level.csv"),
+  file.path(data_derived_dir, "prior_knowledge_scores.csv")
+))
+
+value_file <- find_first_file(c(
+  file.path(data_derived_dir, "scored_value_estimation_participant_level.csv")
+))
+
+add_points_file <- find_first_file(c(
+  file.path(data_derived_dir, "scored_add_points_participant_level.csv")
+))
+
+choose_r_file <- find_first_file(c(
+  file.path(data_derived_dir, "scored_choose_r_participant_level.csv")
+))
+
+conceptual_text_file <- find_first_file(c(
+  file.path(data_derived_dir, "conceptual_text_coding_sheet_coded.csv"),
+  file.path(data_derived_dir, "conceptual_questions_coding_sheet_coded.csv"),
+  file.path(data_derived_dir, "text_response_coding_sheet_coded.csv")
+))
+
+interest_participant_file <- find_first_file(c(
+  file.path(data_derived_dir, "scored_interest_participant_level.csv"),
+  file.path(data_derived_dir, "interest_survey_wide.csv")
+))
+
+interest_item_file <- find_first_file(c(
+  file.path(data_derived_dir, "interest_survey_long.csv"),
+  file.path(data_derived_dir, "scored_interest_item_level.csv")
+))
+
+files_loaded <- tibble(
+  data_source = c(
+    "Participant condition index",
+    "Prior knowledge",
+    "Value estimation",
+    "Add-points",
+    "Choose-r",
+    "Open-response conceptual coding",
+    "Interest participant-level",
+    "Interest item-level"
+  ),
+  file = c(
+    participant_file,
+    prior_file,
+    value_file,
+    add_points_file,
+    choose_r_file,
+    conceptual_text_file,
+    interest_participant_file,
+    interest_item_file
+  )
+) |>
+  mutate(file = if_else(is.na(file), "not found", basename(file)))
+
+pretty_table(files_loaded, caption = "Files used for outcome-family correlations")
+```
+
+```{r participant-index}
+participant_index <- read_csv_or_empty(participant_file)
+
+if (nrow(participant_index) == 0) {
+  stop("Could not find participant_condition_index.csv or participant_outcomes.csv.")
+}
+
+participant_index <- participant_index |>
+  select(any_of(c("participantId", "group", "lecture_type", "practice_type"))) |>
+  distinct() |>
+  make_group_factors()
+
+pretty_table(
+  participant_index |>
+    count(group, lecture_type, practice_type, name = "n_participants") |>
+    arrange(group),
+  caption = "Participants by condition"
+)
+```
+
+## 1.1 Prior knowledge
+
+```{r build-prior}
+prior_raw <- read_csv_or_empty(prior_file)
+
+if (nrow(prior_raw) > 0) {
+  if (all(c("responseId", "score") %in% names(prior_raw))) {
+    prior_participant <- prior_raw |>
+      mutate(
+        concept_tmp = if ("concept" %in% names(prior_raw)) as.character(concept) else NA_character_,
+        prior_component = case_when(
+          responseId %in% c("q-correlation", "correlation") ~ "correlation",
+          responseId %in% c("q-slope", "slope") ~ "slope",
+          str_detect(str_to_lower(concept_tmp), "correlation") ~ "correlation",
+          str_detect(str_to_lower(concept_tmp), "slope") ~ "slope",
+          TRUE ~ NA_character_
+        )
+      ) |>
+      filter(!is.na(prior_component)) |>
+      group_by(participantId, prior_component) |>
+      summarise(score = mean(score, na.rm = TRUE), .groups = "drop") |>
+      pivot_wider(
+        names_from = prior_component,
+        values_from = score,
+        names_prefix = "prior_"
+      ) |>
+      mutate(
+        prior_total = prior_correlation + prior_slope
+      )
+  } else {
+    prior_corr_col <- first_existing_col(prior_raw, c("prior_correlation", "prior_correlation_score", "correlation_score"))
+    prior_slope_col <- first_existing_col(prior_raw, c("prior_slope", "prior_slope_score", "slope_score"))
+    prior_total_col <- first_existing_col(prior_raw, c("prior_total", "prior_knowledge_total", "prior_score"))
+
+    prior_participant <- prior_raw |>
+      transmute(
+        participantId,
+        prior_correlation = if (!is.na(prior_corr_col)) .data[[prior_corr_col]] else NA_real_,
+        prior_slope = if (!is.na(prior_slope_col)) .data[[prior_slope_col]] else NA_real_,
+        prior_total = if (!is.na(prior_total_col)) .data[[prior_total_col]] else prior_correlation + prior_slope
+      ) |>
+      distinct()
+  }
+} else {
+  prior_participant <- tibble(participantId = character(), prior_correlation = numeric(), prior_slope = numeric(), prior_total = numeric())
+}
+
+prior_participant <- prior_participant |>
+  select(participantId, prior_correlation, prior_slope, prior_total)
+
+pretty_table(
+  participant_index |>
+    left_join(prior_participant, by = "participantId") |>
+    group_by(group) |>
+    summarise(
+      n_with_prior = sum(!is.na(prior_total)),
+      mean_prior_total = mean(prior_total, na.rm = TRUE),
+      sd_prior_total = sd(prior_total, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  caption = "Prior knowledge by condition"
+)
+```
+
+## 1.2 Value estimation
+
+```{r build-value}
+value_raw <- read_csv_or_empty(value_file)
+
+if (nrow(value_raw) > 0) {
+  value_error_col <- first_existing_col(value_raw, c("mean_abs_error", "median_abs_error", "abs_error"))
+
+  if (!is.na(value_error_col) && "stat_type" %in% names(value_raw)) {
+    value_participant <- value_raw |>
+      mutate(
+        stat_type = str_to_lower(as.character(stat_type)),
+        value_error = .data[[value_error_col]]
+      ) |>
+      group_by(participantId) |>
+      summarise(
+        value_estimation_error = mean(value_error, na.rm = TRUE),
+        value_correlation_error = mean(value_error[stat_type == "correlation"], na.rm = TRUE),
+        value_slope_error = mean(value_error[stat_type == "slope"], na.rm = TRUE),
+        .groups = "drop"
+      ) |>
+      mutate(
+        value_estimation_performance = -value_estimation_error,
+        value_correlation_performance = -value_correlation_error,
+        value_slope_performance = -value_slope_error
+      ) |>
+      select(participantId, value_estimation_performance, value_correlation_performance, value_slope_performance)
+  } else if (!is.na(value_error_col)) {
+    value_participant <- value_raw |>
+      group_by(participantId) |>
+      summarise(value_estimation_performance = -mean(.data[[value_error_col]], na.rm = TRUE), .groups = "drop")
+  } else {
+    value_participant <- tibble(participantId = character(), value_estimation_performance = numeric())
+  }
+} else {
+  value_participant <- tibble(participantId = character(), value_estimation_performance = numeric())
+}
+
+pretty_table(
+  participant_index |>
+    left_join(value_participant, by = "participantId") |>
+    summarise(
+      n_with_value_estimation = sum(!is.na(value_estimation_performance))
+    ),
+  caption = "Value-estimation data check"
+)
+```
+
+## 1.3 Add-points
+
+```{r build-add-points}
+add_raw <- read_csv_or_empty(add_points_file)
+
+if (nrow(add_raw) > 0) {
+  correct_col <- first_existing_col(add_raw, c(
+    "add_points_pct_r_correct",
+    "pct_r_correct",
+    "correct_direction_pct",
+    "pct_correct_direction"
+  ))
+
+  intended_delta_col <- first_existing_col(add_raw, c(
+    "add_points_mean_intended_delta_r",
+    "mean_intended_delta_r",
+    "intended_delta_r"
+  ))
+
+  abs_slope_col <- first_existing_col(add_raw, c(
+    "add_points_mean_abs_delta_slope",
+    "mean_abs_delta_slope",
+    "abs_delta_slope"
+  ))
+
+  add_participant <- add_raw |>
+    transmute(
+      participantId,
+      add_points_correct_direction = if (!is.na(correct_col)) .data[[correct_col]] else NA_real_,
+      add_points_intended_delta_r = if (!is.na(intended_delta_col)) .data[[intended_delta_col]] else NA_real_,
+      add_points_slope_preservation = if (!is.na(abs_slope_col)) -.data[[abs_slope_col]] else NA_real_
+    ) |>
+    distinct()
+} else {
+  add_participant <- tibble(
+    participantId = character(),
+    add_points_correct_direction = numeric(),
+    add_points_intended_delta_r = numeric(),
+    add_points_slope_preservation = numeric()
+  )
+}
+
+pretty_table(
+  participant_index |>
+    left_join(add_participant, by = "participantId") |>
+    summarise(
+      n_with_add_points = sum(!is.na(add_points_correct_direction))
+    ),
+  caption = "Add-points data check"
+)
+```
+
+## 1.4 Conceptual open responses and choose-r
+
+```{r build-conceptual}
+TEXT_RESPONSE_IDS <- c(
+  "switch-question-response-a",
+  "switch-question-response-b",
+  "q-same",
+  "q-different"
+)
+
+conceptual_raw <- read_csv_or_empty(conceptual_text_file)
+
+if (nrow(conceptual_raw) > 0 && all(c("participantId", "responseId", "score") %in% names(conceptual_raw))) {
+  conceptual_participant <- conceptual_raw |>
+    filter(responseId %in% TEXT_RESPONSE_IDS) |>
+    group_by(participantId) |>
+    summarise(
+      n_open_items = sum(!is.na(score)),
+      open_response_score = sum(score, na.rm = TRUE),
+      open_response_mean = mean(score, na.rm = TRUE),
+      .groups = "drop"
+    )
+} else {
+  conceptual_participant <- tibble(
+    participantId = character(),
+    n_open_items = numeric(),
+    open_response_score = numeric(),
+    open_response_mean = numeric()
+  )
+}
+
+choose_raw <- read_csv_or_empty(choose_r_file)
+
+if (nrow(choose_raw) > 0) {
+  choose_pct_col <- first_existing_col(choose_raw, c("choose_r_pct_correct", "pct_correct", "mean_correct"))
+  choose_score_col <- first_existing_col(choose_raw, c("choose_r_score", "score", "n_correct"))
+
+  choose_participant <- choose_raw |>
+    transmute(
+      participantId,
+      choose_r_pct_correct = if (!is.na(choose_pct_col)) .data[[choose_pct_col]] else NA_real_,
+      choose_r_score = if (!is.na(choose_score_col)) .data[[choose_score_col]] else NA_real_
+    ) |>
+    distinct()
+} else {
+  choose_participant <- tibble(participantId = character(), choose_r_pct_correct = numeric(), choose_r_score = numeric())
+}
+
+pretty_table(
+  participant_index |>
+    left_join(conceptual_participant, by = "participantId") |>
+    left_join(choose_participant, by = "participantId") |>
+    summarise(
+      n_with_open_response = sum(!is.na(open_response_score)),
+      n_with_choose_r = sum(!is.na(choose_r_pct_correct))
+    ),
+  caption = "Conceptual-question data check"
+)
+```
+
+## 1.5 Interest
+
+```{r build-interest}
+interest_participant_raw <- read_csv_or_empty(interest_participant_file)
+interest_item_raw <- read_csv_or_empty(interest_item_file)
+
+clean_scale_type <- function(x) {
+  case_when(
+    str_detect(str_to_lower(as.character(x)), "trigger|tsi") ~ "triggered",
+    str_detect(str_to_lower(as.character(x)), "maintain|msi") ~ "maintained",
+    str_detect(str_to_lower(as.character(x)), "future") ~ "future",
+    TRUE ~ as.character(x)
+  )
+}
+
+if (nrow(interest_participant_raw) > 0) {
+  if (all(c("participantId", "scale_type") %in% names(interest_participant_raw))) {
+    score_col <- first_existing_col(interest_participant_raw, c("composite", "mean_score", "score", "interest_score"))
+
+    interest_participant <- interest_participant_raw |>
+      mutate(
+        scale_clean = clean_scale_type(scale_type),
+        score = if (!is.na(score_col)) .data[[score_col]] else NA_real_
+      ) |>
+      select(participantId, scale_clean, score) |>
+      filter(scale_clean %in% c("triggered", "maintained", "future")) |>
+      pivot_wider(names_from = scale_clean, values_from = score, names_prefix = "interest_")
+  } else {
+    triggered_col <- first_existing_col(interest_participant_raw, c("interest_triggered", "TSI", "triggered", "triggered_interest"))
+    maintained_col <- first_existing_col(interest_participant_raw, c("interest_maintained", "MSI", "maintained", "maintained_interest"))
+    future_col <- first_existing_col(interest_participant_raw, c("interest_future", "FutureInterest", "future", "future_interest"))
+
+    interest_participant <- interest_participant_raw |>
+      transmute(
+        participantId,
+        interest_triggered = if (!is.na(triggered_col)) .data[[triggered_col]] else NA_real_,
+        interest_maintained = if (!is.na(maintained_col)) .data[[maintained_col]] else NA_real_,
+        interest_future = if (!is.na(future_col)) .data[[future_col]] else NA_real_
+      ) |>
+      distinct()
+  }
+} else if (nrow(interest_item_raw) > 0 && all(c("participantId", "scale_type") %in% names(interest_item_raw))) {
+  score_col <- first_existing_col(interest_item_raw, c("answer_scored", "score", "answer_num"))
+
+  interest_participant <- interest_item_raw |>
+    mutate(
+      scale_clean = clean_scale_type(scale_type),
+      score = if (!is.na(score_col)) .data[[score_col]] else NA_real_
+    ) |>
+    filter(scale_clean %in% c("triggered", "maintained", "future")) |>
+    group_by(participantId, scale_clean) |>
+    summarise(score = mean(score, na.rm = TRUE), .groups = "drop") |>
+    pivot_wider(names_from = scale_clean, values_from = score, names_prefix = "interest_")
+} else {
+  interest_participant <- tibble(
+    participantId = character(),
+    interest_triggered = numeric(),
+    interest_maintained = numeric(),
+    interest_future = numeric()
+  )
+}
+
+pretty_table(
+  participant_index |>
+    left_join(interest_participant, by = "participantId") |>
+    summarise(
+      n_with_triggered_interest = sum(!is.na(interest_triggered)),
+      n_with_maintained_interest = sum(!is.na(interest_maintained)),
+      n_with_future_interest = sum(!is.na(interest_future))
+    ),
+  caption = "Interest data check"
+)
+```
+
+# 2. Build participant-level outcome table
+
+```{r build-participant-outcome-table}
+outcome_family <- participant_index |>
+  left_join(prior_participant, by = "participantId") |>
+  left_join(value_participant, by = "participantId") |>
+  left_join(add_participant, by = "participantId") |>
+  left_join(conceptual_participant, by = "participantId") |>
+  left_join(choose_participant, by = "participantId") |>
+  left_join(interest_participant, by = "participantId")
+
+candidate_outcome_vars <- c(
+  "prior_total",
+  "value_estimation_performance",
+  "value_correlation_performance",
+  "value_slope_performance",
+  "add_points_correct_direction",
+  "add_points_slope_preservation",
+  "add_points_intended_delta_r",
+  "open_response_score",
+  "choose_r_pct_correct",
+  "interest_triggered",
+  "interest_maintained",
+  "interest_future"
+)
+
+available_outcome_vars <- intersect(candidate_outcome_vars, names(outcome_family))
+outcome_vars <- available_outcome_vars[
+  map_lgl(available_outcome_vars, ~ any(!is.na(outcome_family[[.x]])))
+]
+
+# Remove duplicated or less central measures if both an overall and subscale version exist.
+# Keep value_estimation_performance as the main value-estimation measure, but keep correlation/slope
+# sub-measures available in the missingness table and optional checks.
+main_correlation_vars <- intersect(
+  c(
+    "prior_total",
+    "value_estimation_performance",
+    "add_points_correct_direction",
+    "add_points_slope_preservation",
+    "open_response_score",
+    "choose_r_pct_correct",
+    "interest_triggered",
+    "interest_maintained",
+    "interest_future"
+  ),
+  outcome_vars
+)
+
+missingness_table <- tibble(outcome = outcome_vars) |>
+  mutate(
+    outcome_label = label_outcome(outcome),
+    n_available = map_int(outcome, ~ sum(!is.na(outcome_family[[.x]]))),
+    n_missing = nrow(outcome_family) - n_available,
+    percent_available = n_available / nrow(outcome_family)
+  ) |>
+  select(outcome_label, n_available, n_missing, percent_available)
+
+pretty_table(missingness_table, caption = "Participant-level outcome availability")
+
+readr::write_csv(outcome_family, file.path(data_derived_dir, "outcome_family_participant_level.csv"))
+```
+
+```{r outcome-overview-interpretation, results='asis'}
+cat(
+  '<div class="note-box"><strong>Scoring direction.</strong><br><br>',
+  'Most variables are already scored so that higher values are better or more positive. ',
+  'For value estimation, I use <code>-mean_abs_error</code>, so higher values mean lower value-estimation error. ',
+  'For slope preservation in add-points, I use <code>-mean_abs_delta_slope</code>, so higher values mean smaller unintended slope change.',
+  '</div>'
+)
+```
+
+# 3. Correlation matrix
+
+I use Spearman correlations as the main correlation metric because several outcomes are bounded, discrete, or based on only a few items. Spearman correlations ask whether participants who score higher on one outcome also tend to score higher on another, without assuming a perfectly linear relationship.
+
+```{r correlations}
+cor_pairwise <- calc_pairwise_cor(outcome_family, main_correlation_vars, method = "spearman") |>
+  mutate(
+    outcome_x_label = label_outcome(outcome_x),
+    outcome_y_label = label_outcome(outcome_y),
+    abs_estimate = abs(estimate),
+    p_value_display = fmt_p(p_value),
+    estimate_display = fmt_r(estimate)
+  ) |>
+  arrange(desc(abs_estimate))
+
+cor_matrix_plot <- make_correlation_matrix(cor_pairwise, main_correlation_vars)
+
+readr::write_csv(cor_pairwise, file.path(data_derived_dir, "outcome_family_correlations_spearman.csv"))
+
+pretty_table(
+  cor_pairwise |>
+    transmute(
+      `Outcome 1` = outcome_x_label,
+      `Outcome 2` = outcome_y_label,
+      n,
+      `Spearman r` = estimate,
+      `p-value` = p_value_display
+    ) |>
+    arrange(`Outcome 1`, `Outcome 2`),
+  caption = "Pairwise Spearman correlations among outcome families"
+)
+```
+
+```{r correlation-heatmap, fig.width=9, fig.height=7}
+if (nrow(cor_matrix_plot) > 0) {
+  ggplot(cor_matrix_plot, aes(x = outcome_x_label, y = outcome_y_label, fill = estimate)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = fmt_r(estimate)), size = 3.2) +
+    scale_fill_gradient2(
+      limits = c(-1, 1),
+      low = "#B2182B",
+      mid = "white",
+      high = "#2166AC",
+      midpoint = 0,
+      name = "Spearman r"
+    ) +
+    labs(
+      title = "Outcome-family correlation matrix",
+      subtitle = "Higher values mean better performance or stronger interest, except prior knowledge is a baseline measure.",
+      x = NULL,
+      y = NULL
+    ) +
+    theme_bw(base_size = 12) +
+    theme(
+      axis.text.x = element_text(angle = 35, hjust = 1),
+      panel.grid = element_blank()
+    )
+}
+```
+
+```{r correlation-matrix-interpretation, results='asis'}
+if (nrow(cor_pairwise) > 0) {
+  top_correlations <- cor_pairwise |>
+    filter(!is.na(estimate), outcome_x != outcome_y) |>
+    arrange(desc(abs_estimate)) |>
+    slice_head(n = 5)
+
+  cat('<div class="note-box"><strong>Interpretation: overall correlation pattern.</strong><br><br>')
+
+  if (nrow(top_correlations) > 0) {
+    cat('The strongest observed associations are:<ul>')
+    pwalk(
+      top_correlations,
+      function(outcome_x, outcome_y, n, estimate, p_value, method, outcome_x_label, outcome_y_label, abs_estimate, p_value_display, estimate_display) {
+        direction <- ifelse(estimate >= 0, "positive", "negative")
+        cat(
+          '<li><strong>', outcome_x_label, '</strong> and <strong>', outcome_y_label,
+          '</strong>: ', direction, ' association, Spearman r = ', estimate_display,
+          ', n = ', n, ', p = ', p_value_display, '.</li>'
+        )
+      }
+    )
+    cat('</ul>')
+  }
+
+  cat(
+    'I would read these correlations as exploratory. They help show whether the outcome families move together, but they should not replace the condition-level models because they answer a different question.',
+    '</div>'
+  )
+}
+```
+
+# 4. Key relationships
+
+The full matrix is useful, but a few relationships are especially important for interpreting the study:
+
+- **Prior knowledge ↔ open response:** whether open-ended conceptual explanation mostly reflects baseline knowledge.
+- **Open response ↔ add-points:** whether verbal conceptual understanding maps onto interactive manipulation performance.
+- **Value estimation ↔ add-points:** whether numeric estimation and interactive manipulation seem to be the same skill.
+- **Interest ↔ performance:** whether participants who were more interested also performed better.
+
+```{r key-relationship-table}
+key_pairs <- tribble(
+  ~outcome_x, ~outcome_y, ~why_it_matters,
+  "prior_total", "open_response_score", "Does open-response performance reflect baseline prior knowledge?",
+  "open_response_score", "add_points_correct_direction", "Does verbal conceptual understanding connect to interactive add-points performance?",
+  "open_response_score", "value_estimation_performance", "Does conceptual explanation connect to numeric value-estimation performance?",
+  "value_estimation_performance", "add_points_correct_direction", "Do numeric estimation and interactive manipulation capture the same skill?",
+  "interest_future", "open_response_score", "Does future interest align with conceptual explanation?",
+  "interest_future", "add_points_correct_direction", "Does future interest align with interactive task performance?"
+) |>
+  filter(outcome_x %in% main_correlation_vars, outcome_y %in% main_correlation_vars)
+
+get_pair_result <- function(x, y) {
+  direct <- cor_pairwise |>
+    filter(outcome_x == x, outcome_y == y) |>
+    select(n, estimate, p_value, method, abs_estimate)
+
+  reverse <- cor_pairwise |>
+    filter(outcome_x == y, outcome_y == x) |>
+    select(n, estimate, p_value, method, abs_estimate)
+
+  bind_rows(direct, reverse) |>
+    slice_head(n = 1)
+}
+
+key_results <- key_pairs |>
+  mutate(result = map2(outcome_x, outcome_y, get_pair_result)) |>
+  unnest(result) |>
+  mutate(
+    outcome_x_label = label_outcome(outcome_x),
+    outcome_y_label = label_outcome(outcome_y),
+    estimate_display = fmt_r(estimate),
+    p_value_display = fmt_p(p_value),
+    strength_label = case_when(
+      is.na(abs(estimate)) ~ "not available",
+      abs(estimate) >= .50 ~ "stronger",
+      abs(estimate) >= .30 ~ "moderate",
+      abs(estimate) >= .10 ~ "weak",
+      TRUE ~ "very weak"
+    )
+  )
+
+pretty_table(
+  key_results |>
+    transmute(
+      `Outcome 1` = outcome_x_label,
+      `Outcome 2` = outcome_y_label,
+      n,
+      `Spearman r` = estimate,
+      `p-value` = p_value_display,
+      `Why this matters` = why_it_matters
+    ),
+  caption = "Key cross-outcome relationships"
+)
+```
+
+```{r key-relationship-interpretation, results='asis'}
+if (nrow(key_results) > 0) {
+  cat('<div class="note-box"><strong>Interpretation: key relationships.</strong><br><br>')
+
+  print_pair_interp <- function(x, y, label, interpretation) {
+    row <- key_results |>
+      filter((outcome_x == x & outcome_y == y) |
+               (outcome_y == x & outcome_x == y)) |>
+      slice_head(n = 1)
+
+    if (nrow(row) == 1) {
+      direction <- ifelse(row$estimate >= 0, "positive", "negative")
+      cat(
+        '<p><strong>', label, ':</strong> Spearman r = ', fmt_r(row$estimate),
+        ', p = ', fmt_p(row$p_value), '. This is a ', row$strength_label,
+        ' ', direction, ' association. ', interpretation, '</p>'
+      )
+    }
+  }
+
+  print_pair_interp(
+    "prior_total",
+    "open_response_score",
+    "Prior knowledge and open response",
+    "Participants with stronger incoming slope/correlation definitions also tended to write stronger open-ended conceptual responses. This means the open-response outcome is meaningfully related to baseline knowledge, which is why controlling for prior knowledge in the conceptual model is important."
+  )
+
+  print_pair_interp(
+    "open_response_score",
+    "add_points_correct_direction",
+    "Open response and add-points",
+    "The association is only weak. This suggests that being able to verbally explain slope/correlation concepts and being able to manipulate points in the intended direction may be related but separable skills."
+  )
+
+  print_pair_interp(
+    "open_response_score",
+    "value_estimation_performance",
+    "Open response and value estimation",
+    "This relationship indicates that conceptual explanation is more clearly aligned with numeric value-estimation performance than with the add-points manipulation outcome."
+  )
+
+  print_pair_interp(
+    "value_estimation_performance",
+    "add_points_correct_direction",
+    "Value estimation and add-points",
+    "This modest association suggests that numeric estimation and interactive manipulation overlap somewhat, but they are not interchangeable assessment outcomes."
+  )
+
+  print_pair_interp(
+    "interest_future",
+    "open_response_score",
+    "Future interest and open response",
+    "Participants who expressed greater future interest also tended to have stronger open-ended conceptual responses. This is exploratory, but it suggests that conceptual understanding and interest may move together."
+  )
+
+  print_pair_interp(
+    "interest_future",
+    "add_points_correct_direction",
+    "Future interest and add-points",
+    "This association is weaker than the future-interest/open-response relationship, suggesting that interest may be more closely aligned with conceptual explanation than with the interactive manipulation score."
+  )
+
+  cat(
+    '<p><strong>Overall:</strong> the performance outcomes do not all collapse into one single construct. Prior knowledge, value estimation, and open-response explanation are meaningfully connected, while add-points slope preservation appears largely separate. This supports treating the outcome families separately in the main results.</p>',
+    '</div>'
+  )
+}
+```
+
+# 5. Scatterplots for selected relationships
+
+```{r selected-scatterplots, fig.width=7, fig.height=5}
+plot_pair <- function(df, x_var, y_var, title, x_label = NULL, y_label = NULL) {
+  if (!all(c(x_var, y_var) %in% names(df))) return(NULL)
+
+  d <- df |>
+    filter(!is.na(.data[[x_var]]), !is.na(.data[[y_var]]))
+
+  if (nrow(d) < 3) return(NULL)
+
+  ggplot(d, aes(x = .data[[x_var]], y = .data[[y_var]], color = group)) +
+    geom_point(size = 2.2, alpha = 0.75) +
+    geom_smooth(method = "lm", se = TRUE, color = "black", linewidth = 0.7) +
+    scale_color_manual(values = GROUP_COLORS, drop = FALSE) +
+    labs(
+      title = title,
+      x = x_label %||% label_outcome(x_var),
+      y = y_label %||% label_outcome(y_var),
+      color = "Condition"
+    ) +
+    theme_bw(base_size = 13)
+}
+
+if (all(c("prior_total", "open_response_score") %in% names(outcome_family))) {
+  plot_pair(
+    outcome_family,
+    "prior_total",
+    "open_response_score",
+    "Prior knowledge vs. open-response conceptual score"
+  )
+}
+```
+
+```{r scatter-open-add, fig.width=7, fig.height=5}
+if (all(c("open_response_score", "add_points_correct_direction") %in% names(outcome_family))) {
+  plot_pair(
+    outcome_family,
+    "open_response_score",
+    "add_points_correct_direction",
+    "Open-response score vs. add-points correct direction"
+  )
+}
+```
+
+```{r scatter-value-add, fig.width=7, fig.height=5}
+if (all(c("value_estimation_performance", "add_points_correct_direction") %in% names(outcome_family))) {
+  plot_pair(
+    outcome_family,
+    "value_estimation_performance",
+    "add_points_correct_direction",
+    "Value-estimation performance vs. add-points correct direction",
+    x_label = "Value-estimation performance (-mean absolute error)",
+    y_label = "Add-points correct direction"
+  )
+}
+```
+
+```{r scatter-interest-open, fig.width=7, fig.height=5}
+if (all(c("interest_future", "open_response_score") %in% names(outcome_family))) {
+  plot_pair(
+    outcome_family,
+    "interest_future",
+    "open_response_score",
+    "Future interest vs. open-response conceptual score"
+  )
+}
+```
+
+# 6. Working summary
+
+```{r working-summary, results='asis'}
+cat(
+  '<div class="callout"><h4>Working summary</h4>',
+  '<p>This analysis is meant to connect the outcome families rather than test the intervention directly. ',
+  'The clearest pattern is that some outcomes move together, but the full set of outcomes does not behave like one single assessment scale.</p>',
+  '<ul>',
+  '<li><strong>Prior knowledge is strongly related to open-response conceptual performance</strong> and also relates to value-estimation performance. This supports using prior knowledge as a covariate when interpreting conceptual outcomes.</li>',
+  '<li><strong>Open-response conceptual score is moderately related to value-estimation performance</strong>, suggesting that verbal conceptual explanation and numeric estimation share some common understanding.</li>',
+  '<li><strong>Add-points correct direction is only weakly related to open response and modestly related to value estimation.</strong> This suggests that the add-points task may involve additional interaction/planning demands beyond conceptual knowledge alone.</li>',
+  '<li><strong>Add-points slope preservation is largely uncorrelated with the other outcomes.</strong> This may mean that preserving slope while changing correlation is a distinct and difficult skill, or that the slope-preservation metric is noisy.</li>',
+  '<li><strong>Interest subscales are strongly related to each other</strong> and show modest positive relationships with some conceptual outcomes, especially open-response score and choose-r accuracy.</li>',
+  '</ul>',
+  '<p>For reporting, I would use this as a synthesis/sanity check. ',
+  'The condition-level models remain the main evidence for intervention effects, while this report helps explain why different outcome families may show different patterns.</p>',
+  '</div>'
+)
+```
+
+# 7. Exported files
+
+This notebook writes two derived files for later synthesis:
+
+- `outcome_family_participant_level.csv`
+- `outcome_family_correlations_spearman.csv`
+
+```{r export-note}
+export_note <- tibble(
+  file = c(
+    file.path(data_derived_dir, "outcome_family_participant_level.csv"),
+    file.path(data_derived_dir, "outcome_family_correlations_spearman.csv")
+  ),
+  exists = file.exists(file)
+)
+
+pretty_table(export_note, caption = "Exported files")
+```

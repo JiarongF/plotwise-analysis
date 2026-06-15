@@ -1,0 +1,52 @@
+"0","data_overview <- tibble("
+"0","  dataset = c("
+"0","    ""Add-points item-level data"","
+"0","    ""Add-points participant-level data"","
+"0","    ""Combined participant outcomes"""
+"0","  ),"
+"0","  rows = c("
+"0","    nrow(scored_add_points_item_level),"
+"0","    nrow(scored_add_points_participant_level),"
+"0","    nrow(participant_outcomes)"
+"0","  ),"
+"0","  participants = c("
+"0","    n_distinct(scored_add_points_item_level$participantId),"
+"0","    n_distinct(scored_add_points_participant_level$participantId),"
+"0","    n_distinct(participant_outcomes$participantId)"
+"0","  )"
+"0",")"
+"0",""
+"0","pretty_table(data_overview, caption = ""Data loaded for the add-points analysis"")"
+"1","
+"
+"1"," "
+"1","<table class=""table table-striped table-hover table-condensed"" style=""width: auto !important; margin-left: auto; margin-right: auto;"">
+<caption>Data loaded for the add-points analysis</caption>
+ <thead>
+  <tr>
+   <th style=""text-align:left;""> dataset </th>
+   <th style=""text-align:right;""> rows </th>
+   <th style=""text-align:right;""> participants </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style=""text-align:left;""> Add-points item-level data </td>
+   <td style=""text-align:right;""> 240 </td>
+   <td style=""text-align:right;""> 80 </td>
+  </tr>
+  <tr>
+   <td style=""text-align:left;""> Add-points participant-level data </td>
+   <td style=""text-align:right;""> 80 </td>
+   <td style=""text-align:right;""> 80 </td>
+  </tr>
+  <tr>
+   <td style=""text-align:left;""> Combined participant outcomes </td>
+   <td style=""text-align:right;""> 80 </td>
+   <td style=""text-align:right;""> 80 </td>
+  </tr>
+</tbody>
+</table>"
+"1"," "
+"1","
+"

@@ -1,0 +1,2016 @@
+---
+title: "Add-Points Analysis"
+author: "Jiarong Feng"
+date: "2026-06-03"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+    code_folding: hide
+    theme: readable
+    df_print: paged
+---
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+source("../utils/utils.R")
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(lme4)
+  library(emmeans)
+  library(knitr)
+  library(scales)
+})
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5,
+  dpi = 150,
+  results = "asis"
+)
+
+theme_set(theme_plotwise())
+
+pretty_table <- function(x, digits = 3, caption = NULL) {
+  x_display <- x |>
+    select(-any_of(c("estimate_value", "lower_value", "upper_value", "p_value_numeric")))
+
+  out <- knitr::kable(
+    x_display,
+    digits = digits,
+    caption = caption,
+    format = "html"
+  )
+
+  if (requireNamespace("kableExtra", quietly = TRUE)) {
+    out <- out |>
+      kableExtra::kable_styling(
+        full_width = FALSE,
+        bootstrap_options = c("striped", "hover", "condensed")
+      )
+  }
+
+  cat("\n", as.character(out), "\n")
+  invisible(out)
+}
+
+fmt_pct <- function(x, accuracy = 1) {
+  scales::percent(x, accuracy = accuracy)
+}
+
+fmt_num <- function(x, digits = 3) {
+  ifelse(is.na(x), NA_character_, format(round(x, digits), nsmall = digits))
+}
+
+fmt_p <- function(p) {
+  case_when(
+    is.na(p) ~ "NA",
+    p < .001 ~ "< .001",
+    TRUE ~ paste0("= ", signif(p, 3))
+  )
+}
+
+fmt_p_table <- function(p) {
+  case_when(
+    is.na(p) ~ "NA",
+    p < .001 ~ "< .001",
+    TRUE ~ as.character(signif(p, 3))
+  )
+}
+
+get_interaction_p_value <- function(model) {
+  coef_df <- as.data.frame(coef(summary(model)), check.names = FALSE)
+  coef_df$term <- rownames(coef_df)
+  interaction_row <- coef_df |>
+    as_tibble() |>
+    filter(str_detect(term, "lecture_typePlotWise:practice_typePlotWise"))
+
+  p_col <- case_when(
+    "Pr(>|z|)" %in% names(interaction_row) ~ "Pr(>|z|)",
+    "Pr(>|t|)" %in% names(interaction_row) ~ "Pr(>|t|)",
+    TRUE ~ NA_character_
+  )
+
+  if (nrow(interaction_row) == 0 || is.na(p_col)) {
+    return(NA_real_)
+  }
+
+  as.numeric(interaction_row[[p_col]][1])
+}
+
+extract_lrt_interaction <- function(full_model, reduced_model) {
+  comp <- anova(reduced_model, full_model, test = "Chisq") |>
+    as.data.frame(check.names = FALSE)
+
+  chisq_col <- dplyr::case_when(
+    "Chisq" %in% names(comp) ~ "Chisq",
+    "LRT" %in% names(comp) ~ "LRT",
+    TRUE ~ NA_character_
+  )
+
+  df_col <- dplyr::case_when(
+    "Chi Df" %in% names(comp) ~ "Chi Df",
+    "Df" %in% names(comp) ~ "Df",
+    "df" %in% names(comp) ~ "df",
+    TRUE ~ NA_character_
+  )
+
+  p_col <- dplyr::case_when(
+    "Pr(>Chisq)" %in% names(comp) ~ "Pr(>Chisq)",
+    "Pr(>Chi)" %in% names(comp) ~ "Pr(>Chi)",
+    TRUE ~ NA_character_
+  )
+
+  tibble(
+    comparison = "lecture type × practice type",
+    chisq = if (!is.na(chisq_col)) comp[[chisq_col]][2] else NA_real_,
+    df_num = if (!is.na(df_col)) comp[[df_col]][2] else NA_real_,
+    p_value = if (!is.na(p_col)) comp[[p_col]][2] else NA_real_
+  )
+}
+
+interaction_test_table <- function(test_df) {
+  test_df |>
+    transmute(
+      Term = "Lecture type × practice type",
+      `Likelihood-ratio χ²` = round(.data[["chisq"]], 3),
+      df = .data[["df_num"]],
+      `p-value` = fmt_p(.data[["p_value"]])
+    )
+}
+
+make_group_labels <- function(x) {
+  recode(
+    as.character(x),
+    CC = "CC: Control lecture + Control practice",
+    CP = "CP: Control lecture + PlotWise practice",
+    PC = "PC: PlotWise lecture + Control practice",
+    PP = "PP: PlotWise lecture + PlotWise practice",
+    .default = as.character(x)
+  )
+}
+
+
+model_lrt_table <- function(model) {
+  out <- tryCatch(
+    {
+      d <- drop1(model, test = "Chisq") |>
+        as.data.frame(check.names = FALSE) |>
+        rownames_to_column("term") |>
+        as_tibble() |>
+        filter(term != "<none>")
+
+      stat_col <- case_when(
+        "LRT" %in% names(d) ~ "LRT",
+        "Chisq" %in% names(d) ~ "Chisq",
+        "Chi.sq" %in% names(d) ~ "Chi.sq",
+        TRUE ~ NA_character_
+      )
+
+      df_col <- case_when(
+        "Df" %in% names(d) ~ "Df",
+        "Chi Df" %in% names(d) ~ "Chi Df",
+        "npar" %in% names(d) ~ "npar",
+        TRUE ~ NA_character_
+      )
+
+      p_col <- case_when(
+        "Pr(Chi)" %in% names(d) ~ "Pr(Chi)",
+        "Pr(>Chi)" %in% names(d) ~ "Pr(>Chi)",
+        "Pr(>Chisq)" %in% names(d) ~ "Pr(>Chisq)",
+        TRUE ~ NA_character_
+      )
+
+      d |>
+        mutate(
+          stat_value = if (!is.na(stat_col)) .data[[stat_col]] else NA_real_,
+          df_value = if (!is.na(df_col)) .data[[df_col]] else NA_real_,
+          p_value = if (!is.na(p_col)) .data[[p_col]] else NA_real_
+        ) |>
+        transmute(
+          Term = recode(
+            term,
+            `lecture_type` = "Lecture type",
+            `practice_type` = "Practice type",
+            `lecture_type:practice_type` = "Lecture type × practice type",
+            `task_goal` = "Task goal",
+            `correlation_score` = "Correlation prior knowledge",
+            `slope_score` = "Slope prior knowledge",
+            `prior_knowledge_total` = "Total prior knowledge",
+            `correlation_score_z` = "Correlation prior knowledge (standardized)",
+            `slope_score_z` = "Slope prior knowledge (standardized)",
+            `prior_knowledge_total_z` = "Total prior knowledge (standardized)",
+            `correlation_score_z` = "Correlation prior knowledge (standardized)",
+            `slope_score_z` = "Slope prior knowledge (standardized)",
+            `prior_knowledge_total_z` = "Total prior knowledge (standardized)",
+            .default = term
+          ),
+          `Likelihood-ratio χ²` = round(stat_value, 3),
+          df = df_value,
+          `p-value` = fmt_p(p_value)
+        )
+    },
+    error = function(e) {
+      tibble(
+        Term = "Model term tests unavailable",
+        `Likelihood-ratio χ²` = NA_real_,
+        df = NA_real_,
+        `p-value` = conditionMessage(e)
+      )
+    }
+  )
+
+  out
+}
+
+model_fixed_effect_table <- function(model) {
+  out <- tryCatch(
+    {
+      coef_mat <- coef(summary(model))
+      coef_df <- as.data.frame(coef_mat, check.names = FALSE) |>
+        rownames_to_column("term") |>
+        as_tibble()
+
+      stat_col <- dplyr::case_when(
+        "z value" %in% names(coef_df) ~ "z value",
+        "t value" %in% names(coef_df) ~ "t value",
+        TRUE ~ NA_character_
+      )
+
+      p_col <- dplyr::case_when(
+        "Pr(>|z|)" %in% names(coef_df) ~ "Pr(>|z|)",
+        "Pr(>|t|)" %in% names(coef_df) ~ "Pr(>|t|)",
+        TRUE ~ NA_character_
+      )
+
+      coef_df2 <- coef_df |>
+        mutate(
+          statistic = if (!is.na(stat_col)) .data[[stat_col]] else NA_real_,
+          p_value = dplyr::case_when(
+            !is.na(p_col) ~ as.numeric(.data[[p_col]]),
+            !is.na(stat_col) ~ 2 * stats::pnorm(abs(.data[[stat_col]]), lower.tail = FALSE),
+            TRUE ~ NA_real_
+          )
+        )
+
+      coef_df2 |>
+        transmute(
+          Term = recode(
+            term,
+            `(Intercept)` = "Intercept",
+            `lecture_typePlotWise` = "PlotWise lecture",
+            `practice_typePlotWise` = "PlotWise practice",
+            `lecture_typePlotWise:practice_typePlotWise` = "PlotWise lecture × PlotWise practice",
+            `correlation_score` = "Correlation prior knowledge",
+            `slope_score` = "Slope prior knowledge",
+            `prior_knowledge_total` = "Total prior knowledge",
+            `correlation_score_z` = "Correlation prior knowledge (standardized)",
+            `slope_score_z` = "Slope prior knowledge (standardized)",
+            `prior_knowledge_total_z` = "Total prior knowledge (standardized)",
+            .default = term
+          ),
+          Estimate = round(Estimate, 3),
+          SE = round(`Std. Error`, 3),
+          `Test statistic` = round(statistic, 3),
+          `p-value` = fmt_p(p_value)
+        )
+    },
+    error = function(e) {
+      tibble(
+        Term = "Fixed-effect table unavailable",
+        Estimate = NA_real_,
+        SE = NA_real_,
+        `Test statistic` = NA_real_,
+        `p-value` = conditionMessage(e)
+      )
+    }
+  )
+
+  out
+}
+
+
+
+model_full_results_table <- function(model) {
+  model_fixed_effect_table(model)
+}
+
+
+clean_emm_comparison_table <- function(contrast_obj, type = NULL) {
+  out <- if (is.null(type)) {
+    as_tibble(summary(contrast_obj, infer = TRUE))
+  } else {
+    as_tibble(summary(contrast_obj, type = type, infer = TRUE))
+  }
+
+  estimate_col <- case_when(
+    "odds.ratio" %in% names(out) ~ "odds.ratio",
+    "ratio" %in% names(out) ~ "ratio",
+    "estimate" %in% names(out) ~ "estimate",
+    TRUE ~ NA_character_
+  )
+
+  lower_col <- case_when(
+    "asymp.LCL" %in% names(out) ~ "asymp.LCL",
+    "lower.CL" %in% names(out) ~ "lower.CL",
+    TRUE ~ NA_character_
+  )
+
+  upper_col <- case_when(
+    "asymp.UCL" %in% names(out) ~ "asymp.UCL",
+    "upper.CL" %in% names(out) ~ "upper.CL",
+    TRUE ~ NA_character_
+  )
+
+  stat_col <- case_when(
+    "z.ratio" %in% names(out) ~ "z.ratio",
+    "t.ratio" %in% names(out) ~ "t.ratio",
+    TRUE ~ NA_character_
+  )
+
+  out |>
+    mutate(
+      estimate_value = if (!is.na(estimate_col)) .data[[estimate_col]] else NA_real_,
+      lower_value = if (!is.na(lower_col)) .data[[lower_col]] else NA_real_,
+      upper_value = if (!is.na(upper_col)) .data[[upper_col]] else NA_real_,
+      statistic_value = if (!is.na(stat_col)) .data[[stat_col]] else NA_real_,
+      estimate_label = case_when(
+        estimate_col == "odds.ratio" ~ "Odds ratio",
+        estimate_col == "ratio" ~ "Ratio",
+        TRUE ~ "Difference"
+      )
+    ) |>
+    transmute(
+      Contrast = contrast,
+      `Estimate type` = estimate_label,
+      Estimate = round(estimate_value, 3),
+      `95% CI` = ifelse(
+        is.na(lower_value) | is.na(upper_value),
+        "—",
+        paste0(round(lower_value, 3), " to ", round(upper_value, 3))
+      ),
+      SE = round(SE, 3),
+      `Test statistic` = round(statistic_value, 3),
+      `p-value` = fmt_p_table(p.value),
+      p_value_numeric = p.value,
+      estimate_value = estimate_value,
+      lower_value = lower_value,
+      upper_value = upper_value
+    )
+}
+
+plot_comparison_forest <- function(comparison_table, title, subtitle = NULL, null_value = 0) {
+  plot_df <- comparison_table |>
+    filter(!is.na(estimate_value)) |>
+    mutate(
+      Contrast = fct_rev(fct_inorder(Contrast)),
+      significant = !is.na(p_value_numeric) & p_value_numeric < .05
+    )
+
+  ggplot(plot_df, aes(x = estimate_value, y = Contrast)) +
+    geom_vline(xintercept = null_value, linewidth = 0.5, linetype = "dashed", color = "grey55") +
+    geom_segment(
+      aes(x = lower_value, xend = upper_value, y = Contrast, yend = Contrast),
+      linewidth = 0.6,
+      color = "grey35",
+      na.rm = TRUE
+    ) +
+    geom_point(aes(shape = significant), size = 2.7, color = "#2F2F2F") +
+    scale_shape_manual(values = c(`TRUE` = 16, `FALSE` = 1), guide = "none") +
+    labs(
+      title = title,
+      subtitle = subtitle,
+      x = ifelse(null_value == 1, "Odds ratio", "Estimated difference"),
+      y = NULL
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      plot.title = element_text(face = "bold"),
+      plot.subtitle = element_text(color = "grey35")
+    )
+}
+
+```
+
+<style>
+body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+.main-container {
+  max-width: 1100px !important;
+}
+h1, h2, h3 {
+  margin-top: 1.4em;
+}
+h1.title {
+  font-weight: 750;
+  margin-bottom: 0.25em;
+}
+blockquote {
+  border-left: 4px solid #AC2B37;
+  background: #FBF0F1;
+  padding: 0.75em 1em;
+  color: #3f3f46;
+}
+.callout {
+  border-left: 5px solid #AC2B37;
+  background: #FBF0F1;
+  padding: 0.85em 1em;
+  margin: 1em 0 1.25em 0;
+  border-radius: 8px;
+}
+.callout-light {
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  padding: 0.85em 1em;
+  margin: 1em 0 1.25em 0;
+  border-radius: 8px;
+}
+.callout h4, .callout-light h4 {
+  margin-top: 0;
+  margin-bottom: 0.35em;
+}
+.result-highlight {
+  border-left: 5px solid #2F855A;
+  background: #F0FFF4;
+  padding: 0.85em 1em;
+  margin: 1em 0 1.25em 0;
+  border-radius: 8px;
+}
+.result-highlight h4 {
+  margin-top: 0;
+  margin-bottom: 0.35em;
+}
+.result-note {
+  color: #4B5563;
+  font-size: 0.95em;
+}
+table {
+  margin-top: 0.75em;
+  margin-bottom: 1.25em;
+}
+.caption {
+  color: #6B7280;
+  font-style: italic;
+}
+</style>
+
+# Overview
+
+This report summarizes the add-points assessment outcomes. The focus is whether participants changed correlation in the intended direction while keeping slope relatively stable.
+
+The add-points assessment contains three tasks:
+
+1. increase a positive correlation,
+2. increase a negative correlation, and
+3. move a correlation closer to zero.
+
+The main outcomes are:
+
+- **Correct direction**: whether the final correlation moved in the intended direction.
+- **Intended change in correlation**: how far the final correlation moved in the intended direction.
+- **Absolute slope change**: how much the slope changed from the initial plot. Lower values indicate better slope preservation.
+- **Reached negative correlation**: for the negative-correlation task only, whether the final correlation crossed below zero.
+
+
+# 1. Load Scored Data
+
+```{r load-scored-data}
+scored_add_points_item_level <- read_csv(
+  file.path(data_derived_dir, "scored_add_points_item_level.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS),
+    task_goal = factor(
+      task_goal,
+      levels = c(
+        "Increase positive correlation",
+        "Increase negative correlation",
+        "Move correlation closer to zero"
+      )
+    )
+  )
+
+scored_add_points_participant_level <- read_csv(
+  file.path(data_derived_dir, "scored_add_points_participant_level.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+participant_outcomes <- read_csv(
+  file.path(data_derived_dir, "participant_outcomes.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+stopifnot(nrow(scored_add_points_participant_level) == 80)
+stopifnot(nrow(participant_outcomes) == 80)
+```
+
+```{r data-overview-table}
+data_overview <- tibble(
+  dataset = c(
+    "Add-points item-level data",
+    "Add-points participant-level data"
+  ),
+  rows = c(
+    nrow(scored_add_points_item_level),
+    nrow(scored_add_points_participant_level)
+  ),
+  participants = c(
+    n_distinct(scored_add_points_item_level$participantId),
+    n_distinct(scored_add_points_participant_level$participantId)
+  )
+)
+
+pretty_table(data_overview, caption = "Data loaded for the add-points analysis")
+```
+
+
+```{r data-checks}
+participant_counts <- scored_add_points_participant_level |>
+  count(group, name = "n_participants") |>
+  arrange(group)
+
+item_counts <- scored_add_points_item_level |>
+  count(group, trialId, task_goal, name = "n_rows") |>
+  arrange(trialId, group)
+
+stopifnot(all(participant_counts$n_participants == 20))
+```
+
+```{r data-checks-print}
+pretty_table(
+  participant_counts |>
+    mutate(condition = make_group_labels(group)) |>
+    select(condition, n_participants),
+  caption = "Participants per condition"
+)
+```
+
+
+```{r legacy-scoring-setup}
+# Stricter reached-negative-r scoring used only as a diagnostic check.
+# In the earlier analysis, add-points-2 appears to have counted reaching a negative final r
+# as the correct direction. The current primary scoring is task-goal based.
+scored_add_points_item_level <- scored_add_points_item_level |>
+  mutate(
+    r_correct_direction_current = r_correct_direction,
+    r_correct_direction_legacy_task2_negative = case_when(
+      trialId == "add-points-2" ~ final_r < 0,
+      TRUE ~ r_correct_direction_current
+    ),
+    scoring_changed_under_legacy = case_when(
+      is.na(r_correct_direction_current) | is.na(r_correct_direction_legacy_task2_negative) ~ NA,
+      TRUE ~ r_correct_direction_current != r_correct_direction_legacy_task2_negative
+    )
+  )
+```
+
+# 2. Descriptive Results
+
+## 2.1 Participant-level summary by condition
+
+```{r participant-level-summary}
+add_points_participant_summary <- scored_add_points_participant_level |>
+  mutate(
+    n_correct_direction = round(add_points_pct_r_correct * add_points_n_items)
+  ) |>
+  group_by(group, lecture_type, practice_type) |>
+  summarise(
+    n_participants = n(),
+    mean_correct_out_of_3 = mean(n_correct_direction, na.rm = TRUE),
+    sd_correct_out_of_3 = sd(n_correct_direction, na.rm = TRUE),
+    mean_pct_correct = mean(add_points_pct_r_correct, na.rm = TRUE),
+    sd_pct_correct = sd(add_points_pct_r_correct, na.rm = TRUE),
+    mean_intended_delta_r = mean(add_points_mean_intended_delta_r, na.rm = TRUE),
+    sd_intended_delta_r = sd(add_points_mean_intended_delta_r, na.rm = TRUE),
+    mean_abs_delta_slope = mean(add_points_mean_abs_delta_slope, na.rm = TRUE),
+    sd_abs_delta_slope = sd(add_points_mean_abs_delta_slope, na.rm = TRUE),
+    mean_reached_negative_r = mean(add_points_pct_reached_negative_r, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(group)
+
+summary_display <- add_points_participant_summary |>
+  transmute(
+    condition = make_group_labels(group),
+    n = n_participants,
+    `Correct direction, M out of 3` = round(mean_correct_out_of_3, 2),
+    `Correct direction, %` = fmt_pct(mean_pct_correct),
+    `Intended Δr, M` = round(mean_intended_delta_r, 3),
+    `|Δ slope|, M` = round(mean_abs_delta_slope, 3),
+    `Reached negative r, %` = fmt_pct(mean_reached_negative_r)
+  )
+
+pretty_table(summary_display, caption = "Participant-level add-points summary by condition")
+```
+
+```{r participant-summary-narrative, results='asis'}
+correct_best <- add_points_participant_summary |>
+  slice_max(mean_pct_correct, n = 1, with_ties = FALSE)
+
+correct_lowest <- add_points_participant_summary |>
+  slice_min(mean_pct_correct, n = 1, with_ties = FALSE)
+
+delta_best <- add_points_participant_summary |>
+  slice_max(mean_intended_delta_r, n = 1, with_ties = FALSE)
+
+slope_lowest <- add_points_participant_summary |>
+  slice_min(mean_abs_delta_slope, n = 1, with_ties = FALSE)
+
+cat(
+  '<div class="callout"><h4>Descriptive takeaway</h4>',
+  '<p>The highest mean correct-direction score was in <strong>', as.character(correct_best$group),
+  '</strong> (', round(correct_best$mean_correct_out_of_3, 2), ' out of 3 tasks; ',
+  fmt_pct(correct_best$mean_pct_correct, accuracy = 0.1), '). ',
+  'The lowest mean correct-direction score was in <strong>', as.character(correct_lowest$group),
+  '</strong> (', round(correct_lowest$mean_correct_out_of_3, 2), ' out of 3 tasks; ',
+  fmt_pct(correct_lowest$mean_pct_correct, accuracy = 0.1), ').</p>',
+  '<p>The largest mean intended change in correlation was in <strong>', as.character(delta_best$group),
+  '</strong>. For slope preservation, lower values are better; the smallest mean absolute slope change was in <strong>',
+  as.character(slope_lowest$group), '</strong>.</p></div>',
+  sep = ""
+)
+```
+
+## 2.2 Item-level summary by task and condition
+
+```{r item-level-summary}
+add_points_item_summary <- scored_add_points_item_level |>
+  group_by(group, trialId, task_goal) |>
+  summarise(
+    n = n(),
+    pct_r_correct = mean(as.numeric(r_correct_direction), na.rm = TRUE),
+    mean_intended_delta_r = mean(intended_delta_r, na.rm = TRUE),
+    median_intended_delta_r = median(intended_delta_r, na.rm = TRUE),
+    mean_final_r = mean(final_r, na.rm = TRUE),
+    median_final_r = median(final_r, na.rm = TRUE),
+    mean_abs_delta_slope = mean(abs_delta_slope, na.rm = TRUE),
+    median_abs_delta_slope = median(abs_delta_slope, na.rm = TRUE),
+    mean_n_points = mean(n_points, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(trialId, group)
+
+item_summary_display <- add_points_item_summary |>
+  transmute(
+    task = task_goal,
+    condition = group,
+    n,
+    `Correct direction` = fmt_pct(pct_r_correct),
+    `Mean intended Δr` = round(mean_intended_delta_r, 3),
+    `Median intended Δr` = round(median_intended_delta_r, 3),
+    `Mean final r` = round(mean_final_r, 3),
+    `Mean |Δ slope|` = round(mean_abs_delta_slope, 3),
+    `Mean points added` = round(mean_n_points, 1)
+  )
+
+pretty_table(item_summary_display, caption = "Item-level add-points summary by task and condition")
+```
+
+```{r item-level-interpretation, results='asis'}
+cat(
+  '<div class="callout-light"><h4>What I notice in the task breakdown</h4>',
+  '<p>The overall PP advantage is not coming from one single task only. PP is high on the negative-correlation task and especially high on the closer-to-zero task. CP looks different: it does reasonably well on the negative-correlation task, but drops on the positive-correlation and closer-to-zero tasks.</p>',
+  '<p>This is why I would avoid summarizing the add-points result as simply “PlotWise practice helps.” The pattern looks more like the practice works best when the lecture has already modeled the same way of thinking.</p>',
+  '</div>',
+  sep = ""
+)
+```
+
+# 3. Participant-Level Distributions
+
+These figures show participant-level add-points performance by condition. For the correct-direction score, each participant completed only three tasks, so the outcome has only four possible values: 0/3, 1/3, 2/3, and 3/3.
+
+## 3.1 Correct direction score distribution
+
+```{r plot-correct-direction-count-distribution}
+add_points_score_distribution <- scored_add_points_participant_level |>
+  mutate(
+    n_correct_direction = round(add_points_pct_r_correct * add_points_n_items),
+    n_correct_label = factor(
+      n_correct_direction,
+      levels = 0:3,
+      labels = c("0/3", "1/3", "2/3", "3/3")
+    )
+  ) |>
+  count(group, n_correct_direction, n_correct_label, name = "n_participants") |>
+  arrange(group, n_correct_direction)
+
+p_correct_direction_counts <- ggplot(
+  add_points_score_distribution,
+  aes(x = n_correct_label, y = n_participants, fill = group)
+) +
+  geom_col(width = 0.68, alpha = 0.85, color = "gray30", linewidth = 0.25) +
+  facet_wrap(~ group, nrow = 1) +
+  scale_fill_manual(values = GROUP_COLORS) +
+  scale_y_continuous(breaks = scales::breaks_width(2), expand = expansion(mult = c(0, 0.08))) +
+  labs(
+    title = "Correct direction score distribution",
+    subtitle = "Each participant completed three add-points tasks.",
+    x = "Number of tasks with correct correlation direction",
+    y = "Number of participants"
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+p_correct_direction_counts
+
+save_plot_all(
+  p_correct_direction_counts,
+  "add_points_correct_direction_score_distribution",
+  width = 9,
+  height = 4.5
+)
+```
+
+## 3.2 Mean intended correlation change
+
+Higher values indicate larger movement in the intended direction. Values below zero indicate movement in the wrong direction on average.
+
+```{r plot-intended-delta-r}
+p_intended_delta_r <- ggplot(
+  scored_add_points_participant_level,
+  aes(x = group, y = add_points_mean_intended_delta_r, fill = group)
+) +
+  geom_boxplot(alpha = 0.55, width = 0.55, outlier.shape = NA) +
+  geom_jitter(aes(color = group), width = 0.12, height = 0, alpha = 0.60, size = 1.9) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
+  scale_fill_manual(values = GROUP_COLORS) +
+  scale_color_manual(values = GROUP_COLORS) +
+  labs(
+    title = "Intended correlation change",
+    subtitle = "Higher values indicate larger movement in the intended direction.",
+    x = "Condition",
+    y = expression(Delta * "r in intended direction")
+  ) +
+  theme(legend.position = "none")
+
+p_intended_delta_r
+
+save_plot_all(
+  p_intended_delta_r,
+  "add_points_participant_intended_delta_r",
+  width = 7,
+  height = 5
+)
+```
+
+## 3.3 Mean absolute slope change
+
+Lower values indicate better slope preservation.
+
+```{r plot-abs-delta-slope}
+p_abs_delta_slope <- ggplot(
+  scored_add_points_participant_level,
+  aes(x = group, y = add_points_mean_abs_delta_slope, fill = group)
+) +
+  geom_boxplot(alpha = 0.55, width = 0.55, outlier.shape = NA) +
+  geom_jitter(aes(color = group), width = 0.12, height = 0, alpha = 0.60, size = 1.9) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black") +
+  scale_fill_manual(values = GROUP_COLORS) +
+  scale_color_manual(values = GROUP_COLORS) +
+  labs(
+    title = "Absolute slope change",
+    subtitle = "Lower values indicate better slope preservation.",
+    x = "Condition",
+    y = expression("|" * Delta * " slope" * "|")
+  ) +
+  theme(legend.position = "none")
+
+p_abs_delta_slope
+
+save_plot_all(
+  p_abs_delta_slope,
+  "add_points_participant_abs_delta_slope",
+  width = 7,
+  height = 5
+)
+```
+
+## 3.4 Reached negative correlation for add-points-2
+
+For the negative-correlation task, correct direction captures whether participants moved correlation in the intended direction. Reached negative correlation is a stricter secondary check: did the final correlation actually cross below zero?
+
+```{r reached-negative-summary}
+reached_negative_summary <- scored_add_points_item_level |>
+  filter(trialId == "add-points-2") |>
+  group_by(group, lecture_type, practice_type) |>
+  summarise(
+    n_participants = n(),
+    n_reached_negative = sum(reached_negative_r, na.rm = TRUE),
+    pct_reached_negative = mean(as.numeric(reached_negative_r), na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(label = paste0(n_reached_negative, "/", n_participants))
+
+pretty_table(
+  reached_negative_summary |>
+    transmute(
+      condition = make_group_labels(group),
+      n = n_participants,
+      `Reached final r < 0` = label,
+      percent = fmt_pct(pct_reached_negative)
+    ),
+  caption = "Reached negative correlation in add-points-2"
+)
+```
+
+# 4. Task-Level Patterns
+
+The next plots separate the three add-points tasks. This helps check whether a group pattern is spread across tasks or driven by one specific task.
+
+## 4.1 Intended correlation change by task and condition
+
+```{r plot-task-intended-delta-r}
+p_task_intended_delta_r <- ggplot(
+  scored_add_points_item_level,
+  aes(x = group, y = intended_delta_r, fill = group)
+) +
+  geom_boxplot(alpha = 0.55, width = 0.55, outlier.shape = NA) +
+  geom_jitter(aes(color = group), width = 0.12, height = 0, alpha = 0.60, size = 1.8) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray40") +
+  facet_wrap(~ task_goal, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = GROUP_COLORS) +
+  scale_color_manual(values = GROUP_COLORS) +
+  labs(
+    title = "Intended correlation change by task",
+    subtitle = "Each point is one participant-task response.",
+    x = "Condition",
+    y = expression(Delta * "r in intended direction")
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+p_task_intended_delta_r
+
+save_plot_all(
+  p_task_intended_delta_r,
+  "add_points_task_intended_delta_r",
+  width = 11,
+  height = 4.5
+)
+```
+
+Overall, the task-level plots suggest that the direction of correlation change varied by task. For the positive-correlation task, most groups tended to move Δr in the intended positive direction, although CP showed more spread and a few responses in the opposite direction. For the negative-correlation task, all groups showed wide variation, suggesting that increasing negative correlation was more difficult or interpreted less consistently. For the move-closer-to-zero task, responses were also variable, but PP showed a more consistently positive shift toward the intended direction.
+
+## 4.2 Correct direction rate by task and condition
+
+```{r plot-task-correct-direction-rate}
+add_points_task_correct_summary <- scored_add_points_item_level |>
+  group_by(group, trialId, task_goal) |>
+  summarise(
+    n_participants = n(),
+    n_correct = sum(r_correct_direction, na.rm = TRUE),
+    pct_correct = mean(as.numeric(r_correct_direction), na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(label = paste0(n_correct, "/", n_participants))
+
+p_task_correct_rate <- ggplot(
+  add_points_task_correct_summary,
+  aes(x = group, y = pct_correct, fill = group)
+) +
+  geom_col(width = 0.68, alpha = 0.85, color = "gray30", linewidth = 0.25) +
+  geom_text(aes(label = label), vjust = -0.35, size = 3) +
+  facet_wrap(~ task_goal, nrow = 1) +
+  scale_fill_manual(values = GROUP_COLORS) +
+  scale_y_continuous(limits = c(0, 1.08), breaks = seq(0, 1, 0.25), labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    title = "Correct direction rate by task",
+    subtitle = "Labels show number correct out of 20 participants per condition.",
+    x = "Condition",
+    y = "Percent correct direction"
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+p_task_correct_rate
+
+save_plot_all(
+  p_task_correct_rate,
+  "add_points_task_correct_direction_rate",
+  width = 11,
+  height = 4.5
+)
+```
+
+The correct-direction rates show that group patterns were not identical across the three add-points tasks. On the positive-correlation task, CC performed highest and CP was lowest. On the negative-correlation task, PP performed highest, while CC was lowest. On the move-closer-to-zero task, PP again had the highest correct-direction rate. This suggests that the overall add-points pattern is not driven by a single task alone, but the size and direction of group differences depend on the specific task goal.
+
+## 4.3 Absolute slope change by task and condition
+
+```{r plot-task-abs-delta-slope}
+p_task_abs_delta_slope <- ggplot(
+  scored_add_points_item_level,
+  aes(x = group, y = abs_delta_slope, fill = group)
+) +
+  geom_boxplot(alpha = 0.55, width = 0.55, outlier.shape = NA) +
+  geom_jitter(aes(color = group), width = 0.12, height = 0, alpha = 0.60, size = 1.8) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white", color = "black") +
+  facet_wrap(~ task_goal, nrow = 1, scales = "free_y") +
+  scale_fill_manual(values = GROUP_COLORS) +
+  scale_color_manual(values = GROUP_COLORS) +
+  labs(
+    title = "Absolute slope change by task",
+    subtitle = "Each point is one participant-task response; lower values indicate better slope preservation.",
+    x = "Condition",
+    y = expression("|" * Delta * " slope" * "|")
+  ) +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+p_task_abs_delta_slope
+
+save_plot_all(
+  p_task_abs_delta_slope,
+  "add_points_task_abs_delta_slope",
+  width = 11,
+  height = 4.5
+)
+```
+
+For slope preservation, lower values indicate better performance. Across tasks, differences between conditions appear smaller and noisier than the correct-direction outcome. The negative-correlation task produced larger slope changes overall, suggesting that this task may have been harder to complete while preserving slope. CP and PP often showed relatively low slope change, but the distributions overlap substantially across groups, so this pattern should be interpreted descriptively rather than as strong evidence of condition differences.
+
+
+Taken together, the task-level plots suggest that add-points performance depends strongly on the specific task goal. Correctly changing correlation direction and preserving slope appear to capture different aspects of performance: participants could often move correlation in the intended direction, but preserving slope was more variable, especially for the negative-correlation task.
+
+# 5.Models(without prior knowledge)
+
+## 5.1 Correct direction model
+
+In the fixed-effect tables below, the reference condition is Control lecture + Control practice. The main-effect rows describe PlotWise lecture or PlotWise practice relative to that reference when the other factor is at its control level. The interaction row indicates whether the PlotWise + PlotWise combination differs from what would be expected based on the two main effects alone.
+
+**Model formula**
+
+`r_correct_direction ~ lecture_type * practice_type + (1 | participantId)`
+
+This logistic mixed model tests whether participants changed correlation in the intended direction. The lecture type × practice type term is the key interaction. Participant is included as a random intercept because each participant completed three add-points tasks.
+
+```{r model-r-correct-direction}
+m_add_r_correct <- glmer(
+  r_correct_direction ~ lecture_type * practice_type + (1 | participantId),
+  data = scored_add_points_item_level,
+  family = binomial
+)
+
+emm_add_r_correct <- emmeans(
+  m_add_r_correct,
+  ~ lecture_type * practice_type,
+  type = "response"
+)
+
+emm_add_r_correct_df <- as_tibble(emm_add_r_correct) |>
+  mutate(condition = paste(lecture_type, practice_type, sep = " + "))
+
+r_correct_display <- emm_add_r_correct_df |>
+  transmute(
+    condition,
+    `Estimated probability` = fmt_pct(prob),
+    SE = round(SE, 3),
+    `95% CI` = paste0(fmt_pct(asymp.LCL), " to ", fmt_pct(asymp.UCL))
+  )
+
+pretty_table(r_correct_display, caption = "Model-estimated probability of changing correlation in the correct direction")
+
+model_fixed_r_correct <- model_full_results_table(m_add_r_correct)
+pretty_table(
+  model_fixed_r_correct,
+  caption = "Full model results: correct direction"
+)
+
+```
+
+```{r model-r-correct-direction-text, results='asis'}
+r_correct_highest <- emm_add_r_correct_df |> slice_max(prob, n = 1, with_ties = FALSE)
+r_correct_lowest <- emm_add_r_correct_df |> slice_min(prob, n = 1, with_ties = FALSE)
+r_int_p <- model_fixed_effect_table(m_add_r_correct) |> filter(Term == "PlotWise lecture × PlotWise practice") |> pull(`p-value`)
+```
+
+There was no clear main effect of lecture or practice alone. However, the marginal lecture × practice interaction suggests that PlotWise practice may be most effective when paired with PlotWise lecture/modeling. This should be interpreted as an exploratory signal rather than a confirmatory result.
+
+
+## 5.1.1 Reached-negative-r scoring check
+
+Modeling if task 2 have used a stricter rule: the response counted as correct only if the final correlation became negative. That is slightly different from simply moving in the negative direction.
+
+**Reached-negative-r check formula**
+
+`reached_negative_r_check ~ lecture_type * practice_type + (1 | participantId)`
+
+For this model, task 2 is scored as correct when `final_r < 0`; tasks 1 and 3 keep the current task-goal-based scoring.
+
+```{r legacy-scoring-comparison}
+legacy_scoring_summary <- scored_add_points_item_level |>
+  group_by(trialId, task_goal) |>
+  summarise(
+    n = n(),
+    current_correct = mean(as.numeric(r_correct_direction_current), na.rm = TRUE),
+    legacy_correct = mean(as.numeric(r_correct_direction_legacy_task2_negative), na.rm = TRUE),
+    n_changed = sum(scoring_changed_under_legacy, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  transmute(
+    task = trialId,
+    task_goal,
+    n,
+    `Current scoring correct` = fmt_pct(current_correct),
+    `Reached-negative-r check correct` = fmt_pct(legacy_correct),
+    `Rows changed by stricter check` = n_changed
+  )
+
+pretty_table(
+  legacy_scoring_summary,
+  caption = "Primary scoring vs. reached-negative-r check"
+)
+```
+
+```{r legacy-correct-direction-model}
+m_add_r_correct_legacy <- glmer(
+  r_correct_direction_legacy_task2_negative ~ lecture_type * practice_type + (1 | participantId),
+  data = scored_add_points_item_level,
+  family = binomial
+)
+
+emm_add_r_correct_legacy <- emmeans(
+  m_add_r_correct_legacy,
+  ~ lecture_type * practice_type,
+  type = "response"
+)
+
+legacy_r_correct_display <- as_tibble(emm_add_r_correct_legacy) |>
+  mutate(condition = paste(lecture_type, practice_type, sep = " + ")) |>
+  transmute(
+    condition,
+    `Estimated probability` = fmt_pct(prob),
+    SE = round(SE, 3),
+    `95% CI` = paste0(fmt_pct(asymp.LCL), " to ", fmt_pct(asymp.UCL))
+  )
+
+pretty_table(
+  legacy_r_correct_display,
+  caption = "Reached-negative-r check: model-estimated probability"
+)
+
+pretty_table(
+  model_full_results_table(m_add_r_correct_legacy),
+  caption = "Reached-negative-r check: full model results"
+)
+```
+
+```{r legacy-correct-direction-text, results='asis'}
+current_interaction_p <- get_interaction_p_value(m_add_r_correct)
+legacy_interaction_p <- get_interaction_p_value(m_add_r_correct_legacy)
+```
+
+Under the stricter reached-negative-r criterion, the clearest pattern was an interaction: PlotWise practice helped most when paired with PlotWise lecture/modeling, but not when added after the control lecture. This suggests that reaching a fully negative correlation may require both interactive practice and prior modeling of how to use the tool conceptually.
+
+## 5.2 Intended correlation change model
+
+**Model formula**
+
+`intended_delta_r ~ lecture_type * practice_type + (1 | participantId)`
+
+This linear mixed model tests how much participants changed correlation in the intended direction, not just whether the direction was correct. Larger values indicate more movement in the intended direction.
+
+```{r model-intended-delta-r}
+m_add_intended_delta_r <- lmer(
+  intended_delta_r ~ lecture_type * practice_type + (1 | participantId),
+  data = scored_add_points_item_level,
+  REML = FALSE
+)
+
+emm_add_intended_delta_r <- emmeans(
+  m_add_intended_delta_r,
+  ~ lecture_type * practice_type
+)
+
+emm_add_intended_delta_r_df <- as_tibble(emm_add_intended_delta_r) |>
+  mutate(condition = paste(lecture_type, practice_type, sep = " + "))
+
+delta_display <- emm_add_intended_delta_r_df |>
+  transmute(
+    condition,
+    `Estimated mean intended Δr` = round(emmean, 3),
+    SE = round(SE, 3),
+    `95% CI` = paste0(round(lower.CL, 3), " to ", round(upper.CL, 3))
+  )
+
+pretty_table(delta_display, caption = "Model-estimated intended correlation change")
+
+model_fixed_intended_delta_r <- model_full_results_table(m_add_intended_delta_r)
+pretty_table(
+  model_fixed_intended_delta_r,
+  caption = "Full model results: intended correlation change"
+)
+
+```
+
+```{r model-intended-delta-r-text, results='asis'}
+delta_highest <- emm_add_intended_delta_r_df |> slice_max(emmean, n = 1, with_ties = FALSE)
+delta_lowest <- emm_add_intended_delta_r_df |> slice_min(emmean, n = 1, with_ties = FALSE)
+```
+
+This outcome is useful because it goes beyond correct/incorrect. The pattern again puts PP at the top and CP at the bottom, but the interaction term itself is not strong.
+
+## 5.3 Absolute slope change model
+
+**Model formula**
+
+`abs_delta_slope ~ lecture_type * practice_type + (1 | participantId)`
+
+This linear mixed model tests whether slope stayed relatively stable while participants changed the correlation. Smaller values indicate less slope change.
+
+```{r model-abs-delta-slope}
+m_add_abs_delta_slope <- lmer(
+  abs_delta_slope ~ lecture_type * practice_type + (1 | participantId),
+  data = scored_add_points_item_level,
+  REML = FALSE
+)
+
+emm_add_abs_delta_slope <- emmeans(
+  m_add_abs_delta_slope,
+  ~ lecture_type * practice_type
+)
+
+emm_add_abs_delta_slope_df <- as_tibble(emm_add_abs_delta_slope) |>
+  mutate(condition = paste(lecture_type, practice_type, sep = " + "))
+
+slope_display <- emm_add_abs_delta_slope_df |>
+  transmute(
+    condition,
+    `Estimated mean |Δ slope|` = round(emmean, 3),
+    SE = round(SE, 3),
+    `95% CI` = paste0(round(lower.CL, 3), " to ", round(upper.CL, 3))
+  )
+
+pretty_table(slope_display, caption = "Model-estimated absolute slope change")
+
+model_fixed_abs_delta_slope <- model_full_results_table(m_add_abs_delta_slope)
+pretty_table(
+  model_fixed_abs_delta_slope,
+  caption = "Full model results: absolute slope change"
+)
+
+```
+
+```{r model-abs-delta-slope-text, results='asis'}
+slope_lowest_model <- emm_add_abs_delta_slope_df |> slice_min(emmean, n = 1, with_ties = FALSE)
+slope_highest_model <- emm_add_abs_delta_slope_df |> slice_max(emmean, n = 1, with_ties = FALSE)
+```
+
+For absolute slope change, lower values indicate better slope preservation. The smallest model-estimated absolute slope change was for Control + PlotWise (estimated mean = 0.189), and the largest was for Control + Control (estimated mean = 0.253).
+
+This does not line up with the correct-direction story: CP preserves slope relatively well, but is weakest on changing correlation in the intended direction. That makes me think slope preservation and correlation control are partly separate skills in this task.
+
+
+# 6. Model-Based Comparisons
+
+This section has two types of comparisons.
+
+First, we report **all pairwise condition comparisons**. These answer the most direct question: which specific groups differ from each other?
+
+Second, we report **design-driven contrasts**. These are exploratory comparisons that map onto the 2 × 2 design questions, such as whether PlotWise practice differs from control practice on average, or whether the fully aligned PlotWise condition stands out.
+
+
+<div class="callout-light">
+<h4>How to read the comparison tables</h4>
+<p>For the binary correct-direction outcome, estimates are odds ratios. Values above 1 mean the first condition in the contrast had higher odds of changing correlation in the correct direction. For continuous outcomes, estimates are mean differences.</p>
+</div>
+
+```{r comparison-models}
+m_add_r_correct_group <- glmer(
+  r_correct_direction ~ group + (1 | participantId),
+  data = scored_add_points_item_level,
+  family = binomial
+)
+
+emm_group_r_correct <- emmeans(
+  m_add_r_correct_group,
+  ~ group,
+  type = "response"
+)
+
+m_add_intended_delta_r_group <- lmer(
+  intended_delta_r ~ group + (1 | participantId),
+  data = scored_add_points_item_level,
+  REML = FALSE
+)
+
+emm_group_intended_delta_r <- emmeans(
+  m_add_intended_delta_r_group,
+  ~ group
+)
+
+m_add_abs_delta_slope_group <- lmer(
+  abs_delta_slope ~ group + (1 | participantId),
+  data = scored_add_points_item_level,
+  REML = FALSE
+)
+
+emm_group_abs_delta_slope <- emmeans(
+  m_add_abs_delta_slope_group,
+  ~ group
+)
+```
+
+## 6.1 All pairwise condition comparisons
+
+These six comparisons cover all pairs among the four conditions. They are useful for interpreting the descriptive pattern, especially whether PP differs from the other groups and whether CP differs from the other groups.
+
+The p-values in this section use Tukey adjustment because all six pairwise comparisons are examined together. This makes them conservative; I use them to understand the pattern rather than as the main evidence for the design story.
+
+```{r pairwise-explanation}
+pairwise_explanation <- tibble(
+  Contrast = c("CC vs CP", "CC vs PC", "CC vs PP", "CP vs PC", "CP vs PP", "PC vs PP"),
+  `What it asks` = c(
+    "What changes when PlotWise practice is added after a control lecture?",
+    "What changes when PlotWise is modeled in the lecture, but practice remains control?",
+    "How does the fully control condition compare with the fully PlotWise condition?",
+    "How does PlotWise practice alone compare with PlotWise lecture/modeling alone?",
+    "What changes when PlotWise lecture/modeling is added before PlotWise practice?",
+    "What changes when PlotWise practice is added after PlotWise lecture/modeling?"
+  )
+)
+
+pretty_table(pairwise_explanation, caption = "Pairwise comparisons and what each one asks")
+```
+
+### 6.1.1 Correct direction
+
+```{r pairwise-r-correct}
+pairwise_r_correct <- pairs(emm_group_r_correct, adjust = "tukey")
+pairwise_r_correct_display <- clean_emm_comparison_table(pairwise_r_correct, type = "response")
+pretty_table(
+  pairwise_r_correct_display,
+  caption = "All pairwise condition comparisons: correct direction"
+)
+
+plot_comparison_forest(
+  pairwise_r_correct_display,
+  title = "Pairwise comparisons: correct direction",
+  subtitle = "Odds ratios above 1 favor the first condition. Open circles are non-significant.",
+  null_value = 1
+)
+```
+
+```{r pairwise-r-correct-note, results='asis'}
+closest_pair <- pairwise_r_correct_display |>
+  filter(Contrast == "CP / PP") |>
+  slice(1)
+
+cat(
+  '<div class="callout-light"><h4>How I would read this table</h4>',
+  '<p>None of the Tukey-adjusted pairwise comparisons is below .05. The closest comparison is <strong>CP vs PP</strong> ',
+  '(odds ratio = <strong>', closest_pair$Estimate, '</strong>, 95% CI ', closest_pair$`95% CI`, ', p = ', closest_pair$`p-value`, '). ',
+  'This is consistent with the descriptive pattern that PP performed better than CP, but on its own this row should be treated as suggestive rather than conclusive.</p>',
+  '</div>',
+  sep = ""
+)
+```
+
+### 6.1.2 Intended correlation change
+
+```{r pairwise-intended-delta-r}
+pairwise_intended_delta_r <- pairs(emm_group_intended_delta_r, adjust = "tukey")
+pairwise_intended_delta_r_display <- clean_emm_comparison_table(pairwise_intended_delta_r)
+pretty_table(
+  pairwise_intended_delta_r_display,
+  caption = "All pairwise condition comparisons: intended correlation change"
+)
+
+plot_comparison_forest(
+  pairwise_intended_delta_r_display,
+  title = "Pairwise comparisons: intended correlation change",
+  subtitle = "Positive values mean the first condition changed correlation more in the intended direction.",
+  null_value = 0
+)
+```
+
+```{r pairwise-intended-delta-note, results='asis'}
+closest_delta_pair <- pairwise_intended_delta_r_display |>
+  arrange(as.numeric(str_extract(`p-value`, "[0-9.]+"))) |>
+  slice(1)
+
+cat(
+  '<div class="callout-light"><h4>How I would read this table</h4>',
+  '<p>The pairwise comparisons for intended correlation change do not show a clear condition difference after Tukey adjustment. ',
+  'The largest pairwise difference is still uncertain, so this outcome is better used as supporting context rather than the main add-points claim.</p>',
+  '</div>',
+  sep = ""
+)
+```
+
+### 6.1.3 Absolute slope change
+
+```{r pairwise-abs-delta-slope}
+pairwise_abs_delta_slope <- pairs(emm_group_abs_delta_slope, adjust = "tukey")
+pairwise_abs_delta_slope_display <- clean_emm_comparison_table(pairwise_abs_delta_slope)
+pretty_table(
+  pairwise_abs_delta_slope_display,
+  caption = "All pairwise condition comparisons: absolute slope change"
+)
+
+plot_comparison_forest(
+  pairwise_abs_delta_slope_display,
+  title = "Pairwise comparisons: absolute slope change",
+  subtitle = "Negative values mean the first condition preserved slope better, because lower |Δ slope| is better.",
+  null_value = 0
+)
+```
+
+After pairwise adjustment, no individual condition contrast was clearly significant. The plots suggest some descriptive trends, especially PP outperforming CP for correct direction, but the confidence intervals are wide and overlap the null. Therefore, the add-points result is better interpreted as an exploratory interaction pattern rather than strong evidence for specific pairwise group differences.
+
+## 6.2 Design-driven contrasts
+
+These contrasts are exploratory and are meant to help interpret the design. They are not treated as confirmatory tests. Instead, they help us understand which part of the lecture × practice design may be driving the add-points pattern.
+
+```{r planned-contrast-explanation}
+planned_contrast_explanation <- tibble(
+  Contrast = c(
+    "any_plotwise_vs_CC",
+    "plotwise_practice_vs_control_practice",
+    "plotwise_lecture_vs_control_lecture",
+    "PP_vs_others",
+    "CP_vs_PC"
+  ),
+  `What it asks` = c(
+    "Does any exposure to PlotWise differ from the fully control condition?",
+    "Does PlotWise practice differ from control practice on average, across lecture types?",
+    "Does seeing PlotWise modeled in the lecture differ from a control lecture on average, across practice types?",
+    "Does the fully aligned PlotWise condition stand out from the other three conditions?",
+    "Is PlotWise practice without PlotWise lecture different from PlotWise lecture without PlotWise practice?"
+  ),
+  `Why it matters` = c(
+    "Checks whether any PlotWise component is associated with add-points performance.",
+    "Tests the practice side of the 2 × 2 design.",
+    "Tests whether lecture modeling may matter before practice.",
+    "Targets the condition where PlotWise was both modeled and practiced.",
+    "Helps interpret whether practice alone or lecture modeling alone is more useful."
+  )
+)
+
+pretty_table(planned_contrast_explanation, caption = "Design-driven contrasts and interpretation")
+```
+
+```{r planned-contrasts-helper}
+planned_contrast_list <- list(
+  any_plotwise_vs_CC = c(-1, 1/3, 1/3, 1/3),
+  plotwise_practice_vs_control_practice = c(-1/2, 1/2, -1/2, 1/2),
+  plotwise_lecture_vs_control_lecture = c(-1/2, -1/2, 1/2, 1/2),
+  PP_vs_others = c(-1/3, -1/3, -1/3, 1),
+  CP_vs_PC = c(0, 1, -1, 0)
+)
+```
+
+### 6.2.1 Correct direction
+
+```{r planned-contrasts-r-correct}
+r_correct_contrasts <- contrast(emm_group_r_correct, planned_contrast_list)
+r_correct_contrasts_display <- clean_emm_comparison_table(r_correct_contrasts, type = "response")
+pretty_table(
+  r_correct_contrasts_display,
+  caption = "Design-driven contrasts: correct direction"
+)
+
+plot_comparison_forest(
+  r_correct_contrasts_display,
+  title = "Design-driven contrasts: correct direction",
+  subtitle = "Odds ratios above 1 favor the first side.",
+  null_value = 1
+)
+```
+
+```{r planned-r-correct-highlight, results='asis'}
+pp_row <- r_correct_contrasts_display |>
+  filter(Contrast == "PP_vs_others") |>
+  slice(1)
+lecture_row <- r_correct_contrasts_display |>
+  filter(Contrast == "plotwise_lecture_vs_control_lecture") |>
+  slice(1)
+
+cat(
+  '<div class="result-highlight"><h4>Result that stands out: fully aligned PlotWise condition</h4>',
+  '<p>The clearest design-driven result is <strong>PP vs. the other three conditions</strong>. ',
+  'Participants in the PlotWise lecture + PlotWise practice condition had higher odds of changing correlation in the intended direction ',
+  '(odds ratio = <strong>', pp_row$Estimate, '</strong>, 95% CI ', pp_row$`95% CI`, ', p = ', pp_row$`p-value`, ').</p>',
+  '<p>This fits the interpretation we discussed: PlotWise practice may work better when participants first see the same kind of interaction modeled in the lecture. ',
+  'The lecture contrast points in the same direction (odds ratio = ', lecture_row$Estimate, ', p = ', lecture_row$`p-value`, '), but it is weaker.</p>',
+  '</div>',
+  sep = ""
+)
+```
+
+### 6.2.2 Intended correlation change
+
+```{r planned-contrasts-intended-delta-r}
+intended_delta_contrasts <- contrast(emm_group_intended_delta_r, planned_contrast_list)
+intended_delta_contrasts_display <- clean_emm_comparison_table(intended_delta_contrasts)
+pretty_table(
+  intended_delta_contrasts_display,
+  caption = "Design-driven contrasts: intended correlation change"
+)
+
+plot_comparison_forest(
+  intended_delta_contrasts_display,
+  title = "Design-driven contrasts: intended correlation change",
+  subtitle = "Positive values mean the first side changed correlation more in the intended direction.",
+  null_value = 0
+)
+```
+
+```{r planned-intended-highlight, results='asis'}
+lecture_delta_row <- intended_delta_contrasts_display |>
+  filter(Contrast == "plotwise_lecture_vs_control_lecture") |>
+  slice(1)
+pp_delta_row <- intended_delta_contrasts_display |>
+  filter(Contrast == "PP_vs_others") |>
+  slice(1)
+
+cat(
+  '<div class="result-highlight"><h4>Secondary result: PlotWise lecture and intended correlation change</h4>',
+  '<p>For the continuous intended-change outcome, the <strong>PlotWise lecture vs. control lecture</strong> contrast is the clearest row ',
+  '(difference = <strong>', lecture_delta_row$Estimate, '</strong>, 95% CI ', lecture_delta_row$`95% CI`, ', p = ', lecture_delta_row$`p-value`, '). ',
+  'This suggests that seeing PlotWise modeled in the lecture may have helped participants move correlation farther in the intended direction.</p>',
+  '<p>The PP vs. others contrast points in the same direction (difference = ', pp_delta_row$Estimate, ', p = ', pp_delta_row$`p-value`, '), but is weaker.</p>',
+  '</div>',
+  sep = ""
+)
+```
+
+### 6.2.3 Absolute slope change
+
+```{r planned-contrasts-abs-delta-slope}
+abs_delta_slope_contrasts <- contrast(emm_group_abs_delta_slope, planned_contrast_list)
+abs_delta_slope_contrasts_display <- clean_emm_comparison_table(abs_delta_slope_contrasts)
+pretty_table(
+  abs_delta_slope_contrasts_display,
+  caption = "Design-driven contrasts: absolute slope change"
+)
+
+plot_comparison_forest(
+  abs_delta_slope_contrasts_display,
+  title = "Design-driven contrasts: absolute slope change",
+  subtitle = "Negative values mean the first side preserved slope better.",
+  null_value = 0
+)
+```
+
+# 7. Modeling with Prior Knowledge
+
+Participants differed in their baseline understanding of correlation and slope. This section adds prior knowledge as a covariate to check whether the condition pattern remains after accounting for baseline conceptual understanding.
+
+For the correlation-direction outcomes, we use the coded **correlation definition score** as the covariate. For the slope-change outcome, we use the coded **slope definition score** as the covariate.
+
+```{r prior-knowledge-load-functions}
+find_prior_knowledge_file <- function() {
+  candidates <- c(
+    "prior_knowledge_scores.csv",
+    "prior_knowledge_coded.csv",
+    "coded_prior_knowledge.csv",
+    "prior_knowledge_participant_level.csv",
+    "scored_prior_knowledge.csv"
+  )
+
+  paths <- file.path(data_derived_dir, candidates)
+  found <- paths[file.exists(paths)]
+
+  if (length(found) == 0) return(NA_character_)
+  found[1]
+}
+
+pick_col <- function(data, candidates) {
+  nm <- names(data)
+  hit <- candidates[candidates %in% nm]
+  if (length(hit) == 0) return(NA_character_)
+  hit[1]
+}
+
+prior_knowledge_path <- find_prior_knowledge_file()
+prior_knowledge_available <- !is.na(prior_knowledge_path)
+
+if (prior_knowledge_available) {
+  prior_raw <- read_csv(prior_knowledge_path, show_col_types = FALSE)
+
+  corr_col <- pick_col(
+    prior_raw,
+    c(
+      "correlation_score",
+      "corr_score",
+      "correlation_definition_score",
+      "prior_correlation_score",
+      "correlation_prior_score"
+    )
+  )
+
+  slope_col <- pick_col(
+    prior_raw,
+    c(
+      "slope_score",
+      "slope_definition_score",
+      "prior_slope_score",
+      "slope_prior_score"
+    )
+  )
+
+  total_col <- pick_col(
+    prior_raw,
+    c(
+      "prior_knowledge_total",
+      "prior_knowledge_score",
+      "total_prior_score",
+      "total_score"
+    )
+  )
+
+  if (is.na(corr_col) || is.na(slope_col)) {
+    prior_knowledge_available <- FALSE
+    prior_knowledge_scores <- tibble()
+  } else {
+    prior_knowledge_scores <- prior_raw |>
+      transmute(
+        participantId,
+        correlation_score = as.numeric(.data[[corr_col]]),
+        slope_score = as.numeric(.data[[slope_col]]),
+        prior_knowledge_total = if (!is.na(total_col)) {
+          as.numeric(.data[[total_col]])
+        } else {
+          correlation_score + slope_score
+        }
+      ) |>
+      mutate(
+        correlation_score_z = as.numeric(scale(correlation_score)),
+        slope_score_z = as.numeric(scale(slope_score)),
+        prior_knowledge_total_z = as.numeric(scale(prior_knowledge_total))
+      )
+
+    add_points_item_with_prior <- scored_add_points_item_level |>
+      left_join(prior_knowledge_scores, by = "participantId")
+  }
+}
+```
+
+```{r prior-knowledge-availability, results='asis'}
+if (prior_knowledge_available) {
+  cat(
+    '<div class="callout-light"><h4>Prior knowledge data found</h4>',
+    '<p>Loaded prior knowledge scores from <code>', basename(prior_knowledge_path), '</code>. ',
+    'The file includes coded correlation and slope definition scores.</p></div>',
+    sep = ""
+  )
+} else {
+  cat(
+    '<div class="callout-light"><h4>Prior knowledge data not found</h4>',
+    '<p>This section is ready to run after the coded prior-knowledge file is saved in <code>data/derived/</code>. ',
+    'The file should include <code>participantId</code>, a correlation definition score, and a slope definition score.</p></div>',
+    sep = ""
+  )
+}
+```
+
+## 7.1 Prior knowledge by condition
+
+```{r prior-knowledge-by-condition}
+if (prior_knowledge_available) {
+  prior_by_condition <- scored_add_points_participant_level |>
+    distinct(participantId, group, lecture_type, practice_type) |>
+    left_join(prior_knowledge_scores, by = "participantId") |>
+    group_by(group, lecture_type, practice_type) |>
+    summarise(
+      n = n(),
+      n_with_scores = sum(!is.na(prior_knowledge_total)),
+      mean_correlation_prior = mean(correlation_score, na.rm = TRUE),
+      sd_correlation_prior = sd(correlation_score, na.rm = TRUE),
+      mean_slope_prior = mean(slope_score, na.rm = TRUE),
+      sd_slope_prior = sd(slope_score, na.rm = TRUE),
+      mean_total_prior = mean(prior_knowledge_total, na.rm = TRUE),
+      sd_total_prior = sd(prior_knowledge_total, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    arrange(group)
+
+  prior_display <- prior_by_condition |>
+    transmute(
+      condition = make_group_labels(group),
+      n,
+      `With scores` = n_with_scores,
+      `Correlation prior, M` = round(mean_correlation_prior, 2),
+      `Correlation prior, SD` = round(sd_correlation_prior, 2),
+      `Slope prior, M` = round(mean_slope_prior, 2),
+      `Slope prior, SD` = round(sd_slope_prior, 2),
+      `Total prior, M` = round(mean_total_prior, 2),
+      `Total prior, SD` = round(sd_total_prior, 2)
+    )
+
+  pretty_table(prior_display, caption = "Coded prior knowledge by condition")
+
+  prior_plot_df <- add_points_item_with_prior |>
+    distinct(participantId, group, correlation_score, slope_score) |>
+    pivot_longer(
+      cols = c(correlation_score, slope_score),
+      names_to = "score_type",
+      values_to = "score"
+    ) |>
+    mutate(
+      score_type = recode(
+        score_type,
+        correlation_score = "Correlation definition",
+        slope_score = "Slope definition"
+      )
+    )
+
+  prior_summary <- prior_plot_df |>
+  group_by(group, score_type) |>
+  summarise(
+    mean_score = mean(score, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(prior_plot_df, aes(x = group, y = score, color = group)) +
+  geom_jitter(width = 0.12, alpha = 0.65, size = 2) +
+  geom_point(
+    data = prior_summary,
+    aes(x = group, y = mean_score),
+    inherit.aes = FALSE,
+    shape = 23,
+    size = 3.2,
+    fill = "white",
+    color = "black"
+  ) +
+  facet_wrap(~ score_type) +
+  scale_color_manual(values = GROUP_COLORS) +
+  scale_y_continuous(
+    breaks = c(0, 0.5, 1),
+    limits = c(-0.05, 1.05)
+  ) +
+  labs(
+    title = "Prior knowledge scores by condition",
+    subtitle = "One point per participant; diamonds show group means.",
+    x = "Condition",
+    y = "Coded score"
+  ) +
+  theme(legend.position = "none")
+}
+```
+
+## 7.2 Correct direction model with prior correlation knowledge
+
+This section reports the adjusted condition estimates and the full model-results table for the prior-knowledge model.
+
+**Model formula**
+
+`r_correct_direction ~ lecture_type * practice_type + correlation_score_z + (1 | participantId)`
+
+Here, `correlation_score_z` is the standardized coded correlation-definition score from the prior-knowledge coding. This model checks whether the lecture type × practice type pattern remains after accounting for baseline correlation understanding.
+
+```{r fit-prior-knowledge-r-correct-model, include=FALSE}
+if (prior_knowledge_available) {
+  m_add_r_correct_pk <- glmer(
+    r_correct_direction ~ lecture_type * practice_type + correlation_score_z + (1 | participantId),
+    data = add_points_item_with_prior,
+    family = binomial
+  )
+
+  emm_add_r_correct_pk <- emmeans(
+    m_add_r_correct_pk,
+    ~ lecture_type * practice_type,
+    type = "response"
+  )
+
+  r_correct_pk_display <- as_tibble(emm_add_r_correct_pk) |>
+    mutate(condition = paste(lecture_type, practice_type, sep = " + ")) |>
+    transmute(
+      condition,
+      `Estimated probability` = fmt_pct(prob),
+      SE = round(SE, 3),
+      `95% CI` = paste0(fmt_pct(asymp.LCL), " to ", fmt_pct(asymp.UCL))
+    )
+
+  r_correct_pk_fixed <- model_full_results_table(m_add_r_correct_pk)
+
+  r_correct_pk_plot_df <- as_tibble(emm_add_r_correct_pk) |>
+    mutate(group = paste0(substr(lecture_type, 1, 1), substr(practice_type, 1, 1)))
+
+  r_correct_observed_pk <- add_points_item_with_prior |>
+    group_by(participantId, group) |>
+    summarise(observed_prop = mean(r_correct_direction, na.rm = TRUE), .groups = "drop")
+}
+```
+
+```{r prior-knowledge-r-correct-model-tables, results='asis'}
+if (prior_knowledge_available) {
+  pretty_table(
+    r_correct_pk_display,
+    caption = "Prior-knowledge-adjusted condition estimates: correct direction"
+  )
+
+  pretty_table(
+    r_correct_pk_fixed,
+    caption = "Full model results: correct direction adjusted for prior correlation knowledge"
+  )
+}
+```
+
+```{r prior-knowledge-r-correct-model-plot}
+if (prior_knowledge_available) {
+  ggplot() +
+    geom_jitter(
+      data = r_correct_observed_pk,
+      aes(x = group, y = observed_prop, color = group),
+      width = 0.12, alpha = 0.45, size = 1.8
+    ) +
+    geom_pointrange(
+      data = r_correct_pk_plot_df,
+      aes(x = group, y = prob, ymin = asymp.LCL, ymax = asymp.UCL),
+      color = "black", size = 0.8, linewidth = 0.75
+    ) +
+    scale_color_manual(values = GROUP_COLORS) +
+    scale_y_continuous(labels = percent_format(accuracy = 1), limits = c(0, 1)) +
+    labs(
+      title = "Prior-knowledge-adjusted probability of correct direction",
+      subtitle = "Small points are observed participant means; black points are adjusted model estimates with 95% CIs.",
+      x = "Condition",
+      y = "Probability / observed proportion"
+    ) +
+    theme(legend.position = "none")
+}
+```
+
+```{r prior-knowledge-r-correct-text, results='asis'}
+if (prior_knowledge_available) {
+  cat(
+    '<div class="callout"><h4>Prior-knowledge adjustment: correct direction</h4>',
+    '<p>Adding the coded correlation-definition score does not really change the story. PP remains the highest adjusted estimate, CP remains the lowest, and the interaction term stays near the same borderline range.</p>',
+    '<p>The prior-knowledge coefficient itself is small and not significant. In this dataset, the condition pattern is not simply because one group started with much better correlation knowledge.</p></div>',
+    sep = ""
+  )
+}
+```
+
+## 7.3 Intended correlation change model with prior correlation knowledge
+
+This section reports the adjusted condition estimates and the full model-results table for the prior-knowledge model.
+
+**Model formula**
+
+`intended_delta_r ~ lecture_type * practice_type + correlation_score_z + (1 | participantId)`
+
+This model asks whether prior correlation understanding helps explain how much participants changed correlation in the intended direction.
+
+```{r fit-prior-knowledge-intended-delta-model, include=FALSE}
+if (prior_knowledge_available) {
+  m_add_intended_delta_r_pk <- lmer(
+    intended_delta_r ~ lecture_type * practice_type + correlation_score_z + (1 | participantId),
+    data = add_points_item_with_prior,
+    REML = FALSE
+  )
+
+  emm_add_intended_delta_r_pk <- emmeans(
+    m_add_intended_delta_r_pk,
+    ~ lecture_type * practice_type
+  )
+
+  intended_delta_pk_display <- as_tibble(emm_add_intended_delta_r_pk) |>
+    mutate(condition = paste(lecture_type, practice_type, sep = " + ")) |>
+    transmute(
+      condition,
+      `Estimated mean intended Δr` = round(emmean, 3),
+      SE = round(SE, 3),
+      `95% CI` = paste0(round(lower.CL, 3), " to ", round(upper.CL, 3))
+    )
+
+  intended_delta_pk_fixed <- model_full_results_table(m_add_intended_delta_r_pk)
+
+  intended_delta_pk_plot_df <- as_tibble(emm_add_intended_delta_r_pk) |>
+    mutate(group = paste0(substr(lecture_type, 1, 1), substr(practice_type, 1, 1)))
+
+  intended_delta_observed_pk <- add_points_item_with_prior |>
+    group_by(participantId, group) |>
+    summarise(observed_intended_delta_r = mean(intended_delta_r, na.rm = TRUE), .groups = "drop")
+}
+```
+
+```{r prior-knowledge-intended-delta-model-tables, results='asis'}
+if (prior_knowledge_available) {
+  pretty_table(
+    intended_delta_pk_display,
+    caption = "Prior-knowledge-adjusted condition estimates: intended correlation change"
+  )
+
+  pretty_table(
+    intended_delta_pk_fixed,
+    caption = "Full model results: intended correlation change adjusted for prior correlation knowledge"
+  )
+}
+```
+
+```{r prior-knowledge-intended-delta-model-plot}
+if (prior_knowledge_available) {
+  ggplot() +
+    geom_hline(yintercept = 0, linewidth = 0.5, linetype = "dashed", color = "grey60") +
+    geom_jitter(
+      data = intended_delta_observed_pk,
+      aes(x = group, y = observed_intended_delta_r, color = group),
+      width = 0.12, alpha = 0.45, size = 1.8
+    ) +
+    geom_pointrange(
+      data = intended_delta_pk_plot_df,
+      aes(x = group, y = emmean, ymin = lower.CL, ymax = upper.CL),
+      color = "black", size = 0.8, linewidth = 0.75
+    ) +
+    scale_color_manual(values = GROUP_COLORS) +
+    labs(
+      title = "Prior-knowledge-adjusted intended correlation change",
+      subtitle = "Small points are observed participant means; black points are adjusted model estimates with 95% CIs.",
+      x = "Condition",
+      y = "Intended Δr"
+    ) +
+    theme(legend.position = "none")
+}
+```
+
+```{r prior-knowledge-intended-delta-text, results='asis'}
+if (prior_knowledge_available) {
+  cat(
+    '<div class="callout-light"><h4>Prior-knowledge adjustment: intended correlation change</h4>',
+    '<p>The adjusted intended-change results look almost the same as the unadjusted results: PP and PC are higher, CP is lower. The correlation prior-knowledge term is not doing much here.</p>',
+    '<p>This supports the same interpretation: the intended-change pattern is more about the condition structure than about the short coded prior-knowledge score.</p></div>',
+    sep = ""
+  )
+}
+```
+
+## 7.4 Absolute slope change model with prior slope knowledge
+
+This section reports the adjusted condition estimates and the full model-results table for the prior-knowledge model.
+
+**Model formula**
+
+`abs_delta_slope ~ lecture_type * practice_type + slope_score_z + (1 | participantId)`
+
+Here, `slope_score_z` is the standardized coded slope-definition score from the prior-knowledge coding. This model checks whether baseline slope understanding helps explain slope preservation during add-points tasks.
+
+```{r fit-prior-knowledge-slope-model, include=FALSE}
+if (prior_knowledge_available) {
+  m_add_abs_delta_slope_pk <- lmer(
+    abs_delta_slope ~ lecture_type * practice_type + slope_score_z + (1 | participantId),
+    data = add_points_item_with_prior,
+    REML = FALSE
+  )
+
+  emm_add_abs_delta_slope_pk <- emmeans(
+    m_add_abs_delta_slope_pk,
+    ~ lecture_type * practice_type
+  )
+
+  slope_pk_display <- as_tibble(emm_add_abs_delta_slope_pk) |>
+    mutate(condition = paste(lecture_type, practice_type, sep = " + ")) |>
+    transmute(
+      condition,
+      `Estimated mean |Δ slope|` = round(emmean, 3),
+      SE = round(SE, 3),
+      `95% CI` = paste0(round(lower.CL, 3), " to ", round(upper.CL, 3))
+    )
+
+  slope_pk_fixed <- model_full_results_table(m_add_abs_delta_slope_pk)
+
+  slope_pk_plot_df <- as_tibble(emm_add_abs_delta_slope_pk) |>
+    mutate(group = paste0(substr(lecture_type, 1, 1), substr(practice_type, 1, 1)))
+
+  slope_observed_pk <- add_points_item_with_prior |>
+    group_by(participantId, group) |>
+    summarise(observed_abs_delta_slope = mean(abs_delta_slope, na.rm = TRUE), .groups = "drop")
+}
+```
+
+```{r prior-knowledge-slope-model-tables, results='asis'}
+if (prior_knowledge_available) {
+  pretty_table(
+    slope_pk_display,
+    caption = "Prior-knowledge-adjusted condition estimates: absolute slope change"
+  )
+
+  pretty_table(
+    slope_pk_fixed,
+    caption = "Full model results: absolute slope change adjusted for prior slope knowledge"
+  )
+}
+```
+
+```{r prior-knowledge-slope-model-plot}
+if (prior_knowledge_available) {
+  ggplot() +
+    geom_jitter(
+      data = slope_observed_pk,
+      aes(x = group, y = observed_abs_delta_slope, color = group),
+      width = 0.12, alpha = 0.45, size = 1.8
+    ) +
+    geom_pointrange(
+      data = slope_pk_plot_df,
+      aes(x = group, y = emmean, ymin = lower.CL, ymax = upper.CL),
+      color = "black", size = 0.8, linewidth = 0.75
+    ) +
+    scale_color_manual(values = GROUP_COLORS) +
+    labs(
+      title = "Prior-knowledge-adjusted absolute slope change",
+      subtitle = "Small points are observed participant means; black points are adjusted model estimates with 95% CIs. Lower values mean better slope preservation.",
+      x = "Condition",
+      y = "|Δ slope|"
+    ) +
+    theme(legend.position = "none")
+}
+```
+
+```{r prior-knowledge-slope-text, results='asis'}
+if (prior_knowledge_available) {
+  cat(
+    '<div class="callout-light"><h4>Prior-knowledge adjustment: slope change</h4>',
+    '<p>This model adds the coded slope definition score when estimating absolute slope change. ',
+    'The condition-estimate table shows the adjusted means, and the model-results table shows all model terms, including the prior slope-knowledge covariate.</p></div>',
+    sep = ""
+  )
+}
+```
+
+
+
+# 8. Working Interpretation
+
+The add-points results are not a simple “PlotWise practice is better” story. The most consistent pattern is that PP performs best on correlation-direction outcomes, while CP is often the weakest. That points to alignment between lecture and practice: participants may need to see the PlotWise way of thinking modeled before the practice tool is useful.
+
+ When reached-negative-r is scored by whether final r actually crosses below zero, the interaction becomes clearer.
+
+Prior knowledge does not explain away the pattern. The coded definition scores are fairly similar across groups, and adding them to the models leaves the condition estimates largely unchanged. The main limitation is still the small number of add-points tasks per participant.
+
+
+
+```{r save-analysis-outputs, include=FALSE}
+write_csv(
+  add_points_item_summary,
+  file.path(output_dir, "add_points_item_summary.csv")
+)
+
+write_csv(
+  add_points_participant_summary,
+  file.path(output_dir, "add_points_participant_summary.csv")
+)
+
+write_csv(
+  add_points_task_correct_summary,
+  file.path(output_dir, "add_points_task_correct_summary.csv")
+)
+
+write_csv(
+  reached_negative_summary,
+  file.path(output_dir, "add_points_reached_negative_summary.csv")
+)
+
+write_csv(
+  pairwise_r_correct_display,
+  file.path(output_dir, "add_points_pairwise_correct_direction.csv")
+)
+
+write_csv(
+  r_correct_contrasts_display,
+  file.path(output_dir, "add_points_design_contrasts_correct_direction.csv")
+)
+
+if (exists("prior_by_condition")) {
+  write_csv(
+    prior_by_condition,
+    file.path(output_dir, "add_points_prior_knowledge_by_condition.csv")
+  )
+}
+```

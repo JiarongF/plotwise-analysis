@@ -1,0 +1,5 @@
+group,lecture_type,practice_type,n_participants,M_prior_knowledge,SD_prior_knowledge,M_correlation_definition,M_slope_definition
+CC,Control,Control,20,1.05,0.48395302077349356,0.525,0.525
+CP,Control,PlotWise,20,1.1,0.6609403189873938,0.55,0.55
+PC,PlotWise,Control,20,1.15,0.5642880936468349,0.525,0.625
+PP,PlotWise,PlotWise,20,1.2,0.37696851746252596,0.6,0.6

@@ -1,0 +1,6 @@
+group,status,percentComplete,n
+CC,completed,100,20
+CP,completed,100,20
+PC,completed,100,20
+PP,completed,100,19
+PP,in progress,100,1

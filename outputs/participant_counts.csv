@@ -1,0 +1,5 @@
+group,lecture_type,practice_type,n_participants
+CC,Control,Control,20
+CP,Control,PlotWise,20
+PC,PlotWise,Control,20
+PP,PlotWise,PlotWise,20

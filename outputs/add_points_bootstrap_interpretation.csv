@@ -1,0 +1,10 @@
+outcome,group_a,group_b,contrast,observed_diff,boot_mean_diff,ci_low,ci_high,outcome_label,interval_crosses_zero,interpretation
+add_points_mean_abs_delta_slope,CC,CP,CP - CC,-0.06329333333333334,-0.06399005066666666,-0.15624779166666666,0.02466858333333318,Absolute slope change,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_mean_abs_delta_slope,CC,PC,PC - CC,-0.007656666666666673,-0.007363636666666661,-0.09938266666666666,0.07831262499999993,Absolute slope change,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_mean_abs_delta_slope,CC,PP,PP - CC,-0.03596166666666667,-0.03562990266666667,-0.12535520833333336,0.040723333333333334,Absolute slope change,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_mean_intended_delta_r,CC,CP,CP - CC,-0.04084,-0.04084321966666668,-0.13272779166666668,0.047153541666666604,Intended change in r,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_mean_intended_delta_r,CC,PC,PC - CC,0.04390666666666666,0.04338735133333333,-0.05977650000000002,0.1472205,Intended change in r,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_mean_intended_delta_r,CC,PP,PP - CC,0.07226166666666665,0.07230812366666667,-0.018713249999999983,0.15982891666666657,Intended change in r,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_pct_r_correct,CC,CP,CP - CC,-0.09999999999999998,-0.10053,-0.25,0.04999999999999993,Correct direction,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_pct_r_correct,CC,PC,PC - CC,-0.01666666666666672,-0.017779999999999997,-0.18333333333333335,0.15000000000000002,Correct direction,TRUE,Interval crosses 0; descriptive difference is uncertain.
+add_points_pct_r_correct,CC,PP,PP - CC,0.09999999999999998,0.09952333333333334,-0.050000000000000044,0.2333333333333334,Correct direction,TRUE,Interval crosses 0; descriptive difference is uncertain.

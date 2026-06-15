@@ -1,0 +1,5 @@
+group,lecture_type,practice_type,n_participants,n_reached_negative,pct_reached_negative,label
+CC,Control,Control,20,4,0.2,4/20
+CP,Control,PlotWise,20,3,0.15,3/20
+PC,PlotWise,Control,20,4,0.20000000000000004,4/20
+PP,PlotWise,PlotWise,20,5,0.25,5/20

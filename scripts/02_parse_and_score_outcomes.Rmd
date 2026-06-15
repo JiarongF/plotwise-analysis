@@ -1,0 +1,613 @@
+---
+title: "02_parse_and_score_outcomes"
+author: "Jiarong Feng"
+date: "2026-06-02"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+source("../utils/utils.R")
+source("../utils/scoring_utils.R")
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5
+)
+
+theme_set(theme_plotwise())
+```
+
+# Overview
+
+This notebook parses the cleaned response data created by `01_clean_data.Rmd`.
+
+The goal is to convert raw responses into item-level and participant-level outcomes for later analysis.
+
+# 1. Scoring Constants
+
+```{r scoring-constants}
+# These values are the initial r and m shown in the add-points assessment.
+INITIAL_R <- 0.4211
+INITIAL_SLOPE <- 0.3156
+```
+
+
+# 2. Load Cleaned Data
+
+```{r load-clean-data}
+participant_condition_index <- read_csv(
+  file.path(data_derived_dir, "participant_condition_index.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+assessment_value_estimation_long <- read_csv(
+  file.path(data_derived_dir, "assessment_value_estimation_long.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+assessment_choose_r_long <- read_csv(
+  file.path(data_derived_dir, "assessment_choose_r_long.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+assessment_add_points_long <- read_csv(
+  file.path(data_derived_dir, "assessment_add_points_long.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+interest_survey_long <- read_csv(
+  file.path(data_derived_dir, "interest_survey_long.csv"),
+  show_col_types = FALSE
+) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+cat("Loaded cleaned datasets.\n")
+```
+
+# 4. Score Value Estimation Assessment
+
+Value-estimation items ask participants to estimate either correlation or slope. We score these using absolute error from the correct value.
+
+Extreme slope entries were flagged when `|answer| > 10`. We preserved the original responses and original absolute errors, but set these flagged entries to `NA` in the primary cleaned error variable (`abs_error_no_extreme`). No decimal correction was applied.
+
+```{r score-value-estimation-item-level}
+scored_value_estimation_item_level <- assessment_value_estimation_long |>
+  filter(responseId == "stat_guess") |>
+  mutate(
+    stat_type = case_when(
+      str_detect(trialId, "correlation") ~ "correlation",
+      str_detect(trialId, "slope") ~ "slope",
+      TRUE ~ NA_character_
+    ),
+    answer_num = suppressWarnings(as.numeric(answer)),
+    correct_answer = map2_dbl(parameters_imgLabel, stat_type, parse_correct_answer),
+    abs_error = abs(answer_num - correct_answer),
+    value_sign = case_when(
+      correct_answer > 0 ~ "positive",
+      correct_answer < 0 ~ "negative",
+      correct_answer == 0 ~ "zero",
+      TRUE ~ NA_character_
+    ),
+    sign_error = case_when(
+      is.na(answer_num) | is.na(correct_answer) ~ NA,
+      correct_answer == 0 ~ FALSE,
+      answer_num * correct_answer < 0 ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    extreme_entry = case_when(
+      stat_type == "slope" & !is.na(answer_num) & abs(answer_num) > 10 ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    abs_error_no_extreme = if_else(extreme_entry, NA_real_, abs_error)
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "trialId",
+      "responseId",
+      "stat_type",
+      "answer",
+      "answer_num",
+      "correct_answer",
+      "abs_error",
+      "abs_error_no_extreme",
+      "extreme_entry",
+      "value_sign",
+      "sign_error",
+      "duration",
+      "cleanedDuration",
+      "parameters_imgLabel"
+    ))
+  ) |>
+  arrange(group, participantId, stat_type, trialId)
+
+cat("Scored value-estimation item rows:", nrow(scored_value_estimation_item_level), "\n")
+cat("Extreme slope entries:", sum(scored_value_estimation_item_level$extreme_entry, na.rm = TRUE), "\n")
+```
+
+
+```{r review-extreme-value-estimation-entries}
+extreme_value_estimation_entries <- scored_value_estimation_item_level |>
+  filter(extreme_entry) |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    trialId,
+    stat_type,
+    answer,
+    answer_num,
+    correct_answer,
+    abs_error,
+    parameters_imgLabel,
+    duration,
+    cleanedDuration
+  ) |>
+  arrange(group, participantId, trialId)
+
+cat("Extreme value-estimation entries:", nrow(extreme_value_estimation_entries), "\n")
+
+extreme_value_estimation_entries
+
+extreme_value_estimation_entries |>
+  count(group, participantId, name = "n_extreme_entries") |>
+  arrange(group, desc(n_extreme_entries), participantId)
+
+extreme_value_estimation_entries |>
+  count(group, trialId, correct_answer, name = "n_extreme_entries") |>
+  arrange(group, trialId)
+```
+
+
+```{r score-value-estimation-participant-level}
+scored_value_estimation_participant_level <- scored_value_estimation_item_level |>
+  group_by(participantId, group, lecture_type, practice_type, stat_type) |>
+  summarise(
+    n_items = n(),
+    n_valid = sum(!is.na(abs_error_no_extreme)),
+    n_extreme = sum(extreme_entry, na.rm = TRUE),
+    mean_abs_error = mean(abs_error_no_extreme, na.rm = TRUE),
+    median_abs_error = median(abs_error_no_extreme, na.rm = TRUE),
+    mean_abs_error_all = mean(abs_error, na.rm = TRUE),
+    median_abs_error_all = median(abs_error, na.rm = TRUE),
+    sign_error_rate = mean(as.numeric(sign_error), na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(group, participantId, stat_type)
+
+cat("Scored value-estimation participant rows:", nrow(scored_value_estimation_participant_level), "\n")
+```
+
+# 5. Score Choose-Strongest-Correlation Assessment
+
+These items ask participants to choose which graph has the stronger correlation. We compare the absolute correlation shown in each graph label.
+
+```{r score-choose-r-item-level}
+scored_choose_r_item_level <- assessment_choose_r_long |>
+  filter(responseId == "graph_choice") |>
+  mutate(
+    abs_r_left = map_dbl(parameters_leftLabel, parse_r_from_label),
+    abs_r_right = map_dbl(parameters_rightLabel, parse_r_from_label),
+    correct_side = case_when(
+      abs_r_left > abs_r_right ~ "left",
+      abs_r_right > abs_r_left ~ "right",
+      TRUE ~ NA_character_
+    ),
+    answer_clean = str_to_lower(str_trim(answer)),
+    is_correct = case_when(
+      is.na(correct_side) | is.na(answer_clean) ~ NA,
+      answer_clean == correct_side ~ TRUE,
+      TRUE ~ FALSE
+    )
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "trialId",
+      "responseId",
+      "answer",
+      "answer_clean",
+      "correct_side",
+      "is_correct",
+      "abs_r_left",
+      "abs_r_right",
+      "duration",
+      "cleanedDuration",
+      "parameters_leftLabel",
+      "parameters_rightLabel"
+    ))
+  ) |>
+  arrange(group, participantId, trialId)
+
+cat("Scored choose-r item rows:", nrow(scored_choose_r_item_level), "\n")
+```
+
+```{r score-choose-r-participant-level}
+scored_choose_r_participant_level <- scored_choose_r_item_level |>
+  group_by(participantId, group, lecture_type, practice_type) |>
+  summarise(
+    choose_r_n_items = n(),
+    choose_r_score = sum(is_correct, na.rm = TRUE),
+    choose_r_pct_correct = mean(as.numeric(is_correct), na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(group, participantId)
+
+cat("Scored choose-r participant rows:", nrow(scored_choose_r_participant_level), "\n")
+```
+
+# 6. Score Add-Points Assessment
+
+The add-points assessment asks participants to change a scatterplot by adding points while trying to not change the slope.
+
+We score several outcomes:
+
+- `r_correct_direction`: whether final correlation moved in the intended direction.
+- `intended_delta_r`: how much final correlation moved in the intended direction.
+- `reached_negative_r`: for add-points-2 only, whether the final correlation crossed below zero.
+- `abs_delta_slope`: how much the slope changed from the initial plot.
+
+Scoring details:
+
+- `add-points-1`: increase positive correlation.
+- `add-points-2`: increase negative correlation. We score partial success as `final_r < initial_r`, and separately retain the stricter indicator `final_r < 0`.
+- `add-points-3`: move correlation closer to zero, scored using absolute distance from zero.
+
+```{r score-add-points-item-level}
+scored_add_points_item_level <- assessment_add_points_long |>
+  filter(responseId == "add_points") |>
+  mutate(
+    stats = map(answer, extract_add_points_stats),
+
+    n_points = map_int(stats, "n_points"),
+    final_r = map_dbl(stats, "final_r"),
+    final_slope = map_dbl(stats, "final_slope"),
+
+    initial_r = INITIAL_R,
+    initial_slope = INITIAL_SLOPE,
+
+    delta_r = final_r - initial_r,
+    abs_delta_r = abs(delta_r),
+
+    delta_slope = final_slope - initial_slope,
+    abs_delta_slope = abs(delta_slope),
+
+    task_goal = case_when(
+      trialId == "add-points-1" ~ "Increase positive correlation",
+      trialId == "add-points-2" ~ "Increase negative correlation",
+      trialId == "add-points-3" ~ "Move correlation closer to zero",
+      TRUE ~ trialId
+    ),
+
+    r_correct_direction = case_when(
+      trialId == "add-points-1" ~ final_r > initial_r,
+      trialId == "add-points-2" ~ final_r < initial_r,
+      trialId == "add-points-3" ~ abs(final_r) < abs(initial_r),
+      TRUE ~ NA
+    ),
+
+    intended_delta_r = case_when(
+      trialId == "add-points-1" ~ final_r - initial_r,
+      trialId == "add-points-2" ~ initial_r - final_r,
+      trialId == "add-points-3" ~ abs(initial_r) - abs(final_r),
+      TRUE ~ NA_real_
+    ),
+
+    reached_negative_r = case_when(
+      trialId == "add-points-2" ~ final_r < 0,
+      TRUE ~ NA
+    )
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "trialId",
+      "responseId",
+      "task_goal",
+      "answer",
+      "n_points",
+      "initial_r",
+      "initial_slope",
+      "final_r",
+      "final_slope",
+      "delta_r",
+      "abs_delta_r",
+      "intended_delta_r",
+      "delta_slope",
+      "abs_delta_slope",
+      "r_correct_direction",
+      "reached_negative_r",
+      "duration",
+      "cleanedDuration"
+    ))
+  ) |>
+  arrange(group, participantId, trialId)
+
+cat("Scored add-points item rows:", nrow(scored_add_points_item_level), "\n")
+```
+
+```{r score-add-points-participant-level}
+scored_add_points_participant_level <- scored_add_points_item_level |>
+  group_by(participantId, group, lecture_type, practice_type) |>
+  summarise(
+    add_points_n_items = n(),
+    add_points_mean_n_points = mean(n_points, na.rm = TRUE),
+    add_points_pct_r_correct = mean(as.numeric(r_correct_direction), na.rm = TRUE),
+    add_points_mean_intended_delta_r = mean(intended_delta_r, na.rm = TRUE),
+    add_points_mean_final_r = mean(final_r, na.rm = TRUE),
+    add_points_mean_delta_r = mean(delta_r, na.rm = TRUE),
+    add_points_mean_abs_delta_r = mean(abs_delta_r, na.rm = TRUE),
+    add_points_mean_final_slope = mean(final_slope, na.rm = TRUE),
+    add_points_mean_delta_slope = mean(delta_slope, na.rm = TRUE),
+    add_points_mean_abs_delta_slope = mean(abs_delta_slope, na.rm = TRUE),
+    add_points_pct_reached_negative_r = mean(as.numeric(reached_negative_r), na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(group, participantId)
+
+cat("Scored add-points participant rows:", nrow(scored_add_points_participant_level), "\n")
+```
+
+# 7. Score Interest Survey
+
+Interest items are scored on a 1--6 scale. Reverse-coded items are recoded as `7 - rating`.
+
+```{r interest-scale-metadata}
+interest_scale_meta <- tribble(
+  ~responseId, ~scale_type, ~question_label, ~reverse,
+
+  "tsi_fun_video", "TSI", "Video was fun", FALSE,
+  "tsi_boring_video", "TSI", "Video was boring", TRUE,
+  "tsi_enjoyed_session", "TSI", "Enjoyed this session", FALSE,
+  "tsi_session_interesting", "TSI", "Session was interesting", FALSE,
+  "tsi_enjoyed_learning", "TSI", "Enjoyed learning new things", FALSE,
+  "tsi_session_fun", "TSI", "Session was fun", FALSE,
+  "tsi_session_boring", "TSI", "Session was boring", TRUE,
+  "tsi_fun_stats", "TSI", "Fun to learn about statistics this way", FALSE,
+
+  "msi_excited", "MSI", "Excited about correlation and slope", FALSE,
+  "msi_interesting_corrslope", "MSI", "Correlation and slope are interesting", FALSE,
+  "msi_interesting_stats", "MSI", "Statistics is interesting", FALSE,
+  "msi_enjoyed_learning", "MSI", "Enjoyed learning about correlation and slope", FALSE,
+
+  "interest_any_study", "FutureInterest", "Interested in any study", FALSE,
+  "interest_statistics_study", "FutureInterest", "Interested in a statistics study", FALSE,
+  "interest_dynamic_vis_study", "FutureInterest", "Interested in a dynamic visualization study", FALSE
+)
+```
+
+```{r score-interest-item-level}
+scored_interest_item_level <- interest_survey_long |>
+  filter(responseId %in% interest_scale_meta$responseId) |>
+  mutate(
+    answer_num = suppressWarnings(as.numeric(answer))
+  ) |>
+  left_join(interest_scale_meta, by = "responseId") |>
+  mutate(
+    answer_scored = if_else(reverse, 7 - answer_num, answer_num)
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "answer_num",
+      "answer_scored",
+      "scale_type",
+      "question_label",
+      "reverse",
+      "duration",
+      "cleanedDuration"
+    ))
+  ) |>
+  arrange(group, participantId, scale_type, responseId)
+
+cat("Scored interest item rows:", nrow(scored_interest_item_level), "\n")
+```
+
+```{r score-interest-participant-level}
+scored_interest_participant_level <- scored_interest_item_level |>
+  group_by(participantId, group, lecture_type, practice_type, scale_type) |>
+  summarise(
+    interest_n_items = n(),
+    composite = mean(answer_scored, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(group, participantId, scale_type)
+
+cat("Scored interest participant rows:", nrow(scored_interest_participant_level), "\n")
+```
+
+# 8. Build Participant-Level Outcome Table
+
+This table has one row per participant and is the main input for later participant-level plots, bootstrap analyses, and summary tables.
+
+```{r participant-outcomes}
+value_estimation_wide <- scored_value_estimation_participant_level |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    stat_type,
+    n_items,
+    n_valid,
+    n_extreme,
+    mean_abs_error,
+    median_abs_error,
+    mean_abs_error_all,
+    median_abs_error_all,
+    sign_error_rate
+  ) |>
+  pivot_wider(
+    names_from = stat_type,
+    values_from = c(
+      n_items,
+      n_valid,
+      n_extreme,
+      mean_abs_error,
+      median_abs_error,
+      mean_abs_error_all,
+      median_abs_error_all,
+      sign_error_rate
+    ),
+    names_glue = "{stat_type}_{.value}"
+  )
+
+interest_wide <- scored_interest_participant_level |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    scale_type,
+    composite
+  ) |>
+  pivot_wider(
+    names_from = scale_type,
+    values_from = composite
+  )
+
+participant_outcomes <- participant_condition_index |>
+  select(participantId, group, lecture_type, practice_type, status, percentComplete) |>
+  left_join(
+    value_estimation_wide,
+    by = c("participantId", "group", "lecture_type", "practice_type")
+  ) |>
+  left_join(
+    scored_choose_r_participant_level,
+    by = c("participantId", "group", "lecture_type", "practice_type")
+  ) |>
+  left_join(
+    scored_add_points_participant_level,
+    by = c("participantId", "group", "lecture_type", "practice_type")
+  ) |>
+  left_join(
+    interest_wide,
+    by = c("participantId", "group", "lecture_type", "practice_type")
+  ) |>
+  arrange(group, participantId)
+
+cat("Participant outcome rows:", nrow(participant_outcomes), "\n")
+cat("Participant outcome columns:", ncol(participant_outcomes), "\n")
+
+stopifnot(nrow(participant_outcomes) == 80)
+```
+
+# 9. Save Scored Outputs
+
+```{r save-scored-outputs}
+write_csv(
+  scored_value_estimation_item_level,
+  file.path(data_derived_dir, "scored_value_estimation_item_level.csv")
+)
+
+write_csv(
+  scored_value_estimation_participant_level,
+  file.path(data_derived_dir, "scored_value_estimation_participant_level.csv")
+)
+
+write_csv(
+  scored_choose_r_item_level,
+  file.path(data_derived_dir, "scored_choose_r_item_level.csv")
+)
+
+write_csv(
+  scored_choose_r_participant_level,
+  file.path(data_derived_dir, "scored_choose_r_participant_level.csv")
+)
+
+write_csv(
+  scored_add_points_item_level,
+  file.path(data_derived_dir, "scored_add_points_item_level.csv")
+)
+
+write_csv(
+  scored_add_points_participant_level,
+  file.path(data_derived_dir, "scored_add_points_participant_level.csv")
+)
+
+write_csv(
+  scored_interest_item_level,
+  file.path(data_derived_dir, "scored_interest_item_level.csv")
+)
+
+write_csv(
+  scored_interest_participant_level,
+  file.path(data_derived_dir, "scored_interest_participant_level.csv")
+)
+
+write_csv(
+  participant_outcomes,
+  file.path(data_derived_dir, "participant_outcomes.csv")
+)
+
+cat("Saved scored outputs to:", data_derived_dir, "\n")
+```
+
+# 10. Output Files
+
+```{r output-files}
+created_files <- tibble(
+  file = c(
+    "scored_value_estimation_item_level.csv",
+    "scored_value_estimation_participant_level.csv",
+    "scored_choose_r_item_level.csv",
+    "scored_choose_r_participant_level.csv",
+    "scored_add_points_item_level.csv",
+    "scored_add_points_participant_level.csv",
+    "scored_interest_item_level.csv",
+    "scored_interest_participant_level.csv",
+    "participant_outcomes.csv"
+  ),
+  folder = data_derived_dir
+)
+
+cat("Created", nrow(created_files), "scored data files.\n")
+```

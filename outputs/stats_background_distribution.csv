@@ -1,0 +1,59 @@
+responseId,responsePrompt,answer,n_rows
+q-class-level,"If yes, what is the highest level of a statistics class you have taken?",College (undergraduate),40
+q-class-level,"If yes, what is the highest level of a statistics class you have taken?",Graduate school,1
+q-class-level,"If yes, what is the highest level of a statistics class you have taken?",High school,22
+q-class-level,"If yes, what is the highest level of a statistics class you have taken?",NA,17
+q-class-taken,Have you ever taken a statistics class?,No,26
+q-class-taken,Have you ever taken a statistics class?,Yes,54
+q-class-time,"If yes, how long ago was your most recent statistics class?",1,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",1 year ago,4
+q-class-time,"If yes, how long ago was your most recent statistics class?",10,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",10 years,3
+q-class-time,"If yes, how long ago was your most recent statistics class?",10 years ago,2
+q-class-time,"If yes, how long ago was your most recent statistics class?",11,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",11 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",12 Years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",12 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",17 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",18 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",19 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",2 years ago,2
+q-class-time,"If yes, how long ago was your most recent statistics class?",20,3
+q-class-time,"If yes, how long ago was your most recent statistics class?",20 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",20 years ago,2
+q-class-time,"If yes, how long ago was your most recent statistics class?",25,2
+q-class-time,"If yes, how long ago was your most recent statistics class?",3,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",3 years ago.,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",33 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",35 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",35 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",4 years ago,3
+q-class-time,"If yes, how long ago was your most recent statistics class?",40 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",5,2
+q-class-time,"If yes, how long ago was your most recent statistics class?",5 months ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",5 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",5 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",6,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",6 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",7 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",7 years ago,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",8 years ago,2
+q-class-time,"If yes, how long ago was your most recent statistics class?",Currently,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",Currently in one,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",Mathematical Statistics II,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",N/A,1
+q-class-time,"If yes, how long ago was your most recent statistics class?","in college, over 25 years",1
+q-class-time,"If yes, how long ago was your most recent statistics class?",never,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",over 4 years,1
+q-class-time,"If yes, how long ago was your most recent statistics class?",NA,25
+q-grade,"If yes, what grade did you get in the class?",A,29
+q-grade,"If yes, what grade did you get in the class?",B,14
+q-grade,"If yes, what grade did you get in the class?",C,6
+q-grade,"If yes, what grade did you get in the class?",I don't remember,13
+q-grade,"If yes, what grade did you get in the class?",NA,18
+q-how-many,"If yes, how many statistics classes have you taken in total?",1,34
+q-how-many,"If yes, how many statistics classes have you taken in total?",2,11
+q-how-many,"If yes, how many statistics classes have you taken in total?",3,2
+q-how-many,"If yes, how many statistics classes have you taken in total?",4,2
+q-how-many,"If yes, how many statistics classes have you taken in total?",5 or more,6
+q-how-many,"If yes, how many statistics classes have you taken in total?",NA,25

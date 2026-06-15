@@ -1,0 +1,13 @@
+group,trialId,task_goal,n_participants,n_correct,pct_correct,label
+CC,add-points-1,Increase positive correlation,20,19,0.95,19/20
+CC,add-points-2,Increase negative correlation,20,11,0.55,11/20
+CC,add-points-3,Move correlation closer to zero,20,15,0.75,15/20
+CP,add-points-1,Increase positive correlation,20,12,0.6,12/20
+CP,add-points-2,Increase negative correlation,20,14,0.7,14/20
+CP,add-points-3,Move correlation closer to zero,20,13,0.65,13/20
+PC,add-points-1,Increase positive correlation,20,17,0.85,17/20
+PC,add-points-2,Increase negative correlation,20,14,0.7,14/20
+PC,add-points-3,Move correlation closer to zero,20,13,0.65,13/20
+PP,add-points-1,Increase positive correlation,20,17,0.85,17/20
+PP,add-points-2,Increase negative correlation,20,16,0.8,16/20
+PP,add-points-3,Move correlation closer to zero,20,18,0.9,18/20

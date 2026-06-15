@@ -1,0 +1,721 @@
+---
+title: "01_clean_data"
+author: "Jiarong Feng"
+date: "2026-06-02"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+source("../utils/utils.R")
+source("../utils/clean_data_utils.R")
+
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 8,
+  fig.height = 5
+)
+
+theme_set(theme_plotwise())
+```
+
+# Overview
+
+This notebook loads the four raw condition files, adds condition labels, validates participant structure, preserves survey and open-text responses, separates major study phases, and saves clean datasets for next scoring and analysis.
+
+This notebook is only for data cleaning
+
+# 1. Raw Files and Study Constants
+
+```{r raw-file-config}
+raw_files <- tribble(
+  ~filename,                         ~lecture_type, ~practice_type, ~group,
+  "main-control-control.csv",         "Control",     "Control",      "CC",
+  "main-control-plotwise.csv",        "Control",     "PlotWise",     "CP",
+  "main-plotwise-control.csv",        "PlotWise",    "Control",      "PC",
+  "main-plotwise-plotwise.csv",       "PlotWise",    "PlotWise",     "PP"
+)
+
+PRE_SURVEY_IDS <- c(
+  "q-correlation",
+  "q-slope",
+  "q-class-taken",
+  "q-how-many",
+  "q-class-time",
+  "q-class-level",
+  "q-grade"
+)
+
+STATS_BACKGROUND_IDS <- c(
+  "q-class-taken",
+  "q-how-many",
+  "q-class-time",
+  "q-class-level",
+  "q-grade"
+)
+
+PRACTICE_MOTIVATION_IDS <- c("q-motivation")
+
+ASSESSMENT_VALUE_ESTIMATION_TRIALS <- c(
+  paste0("guess-correlation-", 1:8),
+  paste0("guess-slope-", 1:8)
+)
+
+ASSESSMENT_CHOOSE_R_TRIALS <- c(
+  "choose-strongest-r-1",
+  "choose-strongest-r-2"
+)
+
+ASSESSMENT_ADD_POINTS_TRIALS <- c(
+  "add-points-1",
+  "add-points-2",
+  "add-points-3"
+)
+
+ASSESSMENT_CONNECTION_MAKING_TRIALS <- c("connection-making")
+
+ASSESSMENT_CONNECTION_MAKING_IDS <- c(
+  "switch-question-response-a",
+  "switch-question-response-b",
+  "q-same",
+  "q-different"
+)
+
+INTEREST_TRIALS <- c(
+  "triggeredSituationalInterest",
+  "maintainedSituationalInterest",
+  "futureInterestSurvey"
+)
+```
+
+# 2. Load Raw Data
+
+```{r load-raw-data}
+raw_list <- pmap(
+  raw_files,
+  \(filename, lecture_type, practice_type, group) {
+    read_group(
+      filename = filename,
+      lecture_type_value = lecture_type,
+      practice_type_value = practice_type,
+      group_value = group
+    )
+  }
+)
+
+names(raw_list) <- raw_files$group
+
+raw_all <- bind_rows(raw_list) |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  )
+
+cat("Loaded raw data:\n")
+cat("- Total rows:", nrow(raw_all), "\n")
+cat("- Total columns:", ncol(raw_all), "\n")
+cat("- Unique participants:", n_distinct(raw_all$participantId), "\n")
+```
+
+# 3. Data Validation
+
+```{r data-validation}
+participant_counts <- raw_all |>
+  distinct(participantId, group, lecture_type, practice_type) |>
+  count(group, lecture_type, practice_type, name = "n_participants")
+
+duplicate_participant_check <- raw_all |>
+  distinct(participantId, group) |>
+  count(participantId, name = "n_conditions") |>
+  filter(n_conditions > 1)
+
+row_counts <- raw_all |>
+  count(group, source_file, name = "n_rows") |>
+  arrange(group)
+
+column_inventory <- tibble(
+  column_name = names(raw_all),
+  column_type = map_chr(raw_all, \(x) class(x)[1]),
+  n_missing = map_int(raw_all, \(x) sum(is.na(x))),
+  pct_missing = n_missing / nrow(raw_all)
+) |>
+  arrange(desc(pct_missing), column_name)
+
+trial_overview <- raw_all |>
+  count(group, trialId, name = "n_rows") |>
+  arrange(group, trialId)
+
+response_overview <- raw_all |>
+  count(group, responseId, name = "n_rows") |>
+  arrange(group, responseId)
+
+trial_response_overview <- raw_all |>
+  count(group, trialId, responseId, responsePrompt, name = "n_rows") |>
+  arrange(group, trialId, responseId)
+
+stopifnot(sum(participant_counts$n_participants) == 80)
+stopifnot(all(participant_counts$n_participants == 20))
+stopifnot(nrow(duplicate_participant_check) == 0)
+
+cat("Validation passed:\n")
+cat("- 80 unique participants\n")
+cat("- 20 participants per condition\n")
+cat("- no participant appears in more than one condition\n")
+```
+
+# 4. Participant Index
+
+```{r participant-index}
+participant_condition_index <- raw_all |>
+  group_by(participantId, group, lecture_type, practice_type) |>
+  summarise(
+    status = first(na.omit(status)),
+    percentComplete = max(percentComplete, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(group, participantId)
+
+participant_completion_summary <- participant_condition_index |>
+  count(group, status, percentComplete, name = "n") |>
+  arrange(group, status, percentComplete)
+
+cat("Participant index created:", nrow(participant_condition_index), "participants\n")
+```
+
+# 5. Item-Level Dataset
+
+The item-level dataset keeps all original columns and adds condition variables. This is the main dataset used for analysis.
+
+```{r item-level}
+clean_item_level <- raw_all |>
+  mutate(
+    lecture_type = factor(lecture_type, levels = c("Control", "PlotWise")),
+    practice_type = factor(practice_type, levels = c("Control", "PlotWise")),
+    group = factor(group, levels = GROUP_LEVELS)
+  ) |>
+  arrange(group, participantId, trialId, responseId)
+
+cat("Clean item-level dataset created:\n")
+cat("- Rows:", nrow(clean_item_level), "\n")
+cat("- Columns:", ncol(clean_item_level), "\n")
+```
+
+# 6. Save All Non-Empty Answer Rows
+
+This file save every non-empty response in a simple long-format table. Might be useful for future analysis.
+
+```{r all-answer-rows}
+all_answer_rows <- clean_item_level |>
+  filter(is_nonempty_text(answer)) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "source_file",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "duration",
+      "cleanedDuration",
+      "status",
+      "percentComplete"
+    )),
+    everything()
+  ) |>
+  arrange(group, participantId, trialId, responseId)
+
+cat("All non-empty answer rows:", nrow(all_answer_rows), "\n")
+```
+
+# 7. Pre-Survey Data
+
+
+```{r pre-survey}
+pre_survey_long <- clean_item_level |>
+  filter(
+    trialId == "pre questions",
+    responseId %in% PRE_SURVEY_IDS
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "source_file",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "duration",
+      "cleanedDuration",
+      "status",
+      "percentComplete"
+    ))
+  ) |>
+  arrange(group, participantId, responseId)
+
+pre_survey_wide <- pre_survey_long |>
+  group_by(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId
+  ) |>
+  summarise(
+    answer = first_non_missing(answer),
+    responsePrompt = first_non_missing(responsePrompt),
+    .groups = "drop"
+  ) |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId,
+    answer
+  ) |>
+  pivot_wider(
+    names_from = responseId,
+    values_from = answer,
+    names_prefix = "pre_"
+  ) |>
+  arrange(group, participantId)
+
+cat("Pre-survey rows:", nrow(pre_survey_long), "\n")
+```
+
+# 8. Definition Responses for Prior Knowledge Coding
+
+These are the pre-survey definition responses that will later be coded as prior knowledge.
+
+```{r definition-responses}
+definition_responses <- pre_survey_long |>
+  filter(responseId %in% c("q-correlation", "q-slope")) |>
+  filter(is_nonempty_text(answer)) |>
+  arrange(group, participantId, responseId)
+
+definition_responses_wide <- definition_responses |>
+  group_by(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId
+  ) |>
+  summarise(
+    answer = first_non_missing(answer),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = responseId,
+    values_from = answer,
+    names_prefix = "definition_"
+  ) |>
+  arrange(group, participantId)
+
+cat("Definition response rows:", nrow(definition_responses), "\n")
+```
+
+# 9. Statistics Background Responses
+
+These fields support later prior-knowledge analysis based on self-reported statistics background.
+
+```{r stats-background}
+stats_background_long <- pre_survey_long |>
+  filter(responseId %in% STATS_BACKGROUND_IDS) |>
+  arrange(group, participantId, responseId)
+
+stats_background_wide <- stats_background_long |>
+  group_by(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId
+  ) |>
+  summarise(
+    answer = first_non_missing(answer),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = responseId,
+    values_from = answer,
+    names_prefix = "stats_"
+  ) |>
+  arrange(group, participantId)
+
+stats_background_distribution <- stats_background_long |>
+  count(responseId, responsePrompt, answer, name = "n_rows") |>
+  arrange(responseId, answer)
+
+cat("Statistics background rows:", nrow(stats_background_long), "\n")
+```
+
+# 10. Practice Motivation Response
+
+`q-motivation` appears after practice and before assessment. It captures whether participants wanted to practice more, so it is preserved separately from pre-survey and interest scales.
+
+```{r practice-motivation}
+practice_motivation_long <- clean_item_level |>
+  filter(responseId %in% PRACTICE_MOTIVATION_IDS) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "source_file",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "duration",
+      "cleanedDuration",
+      "status",
+      "percentComplete"
+    ))
+  ) |>
+  arrange(group, participantId, trialId, responseId)
+
+practice_motivation_wide <- practice_motivation_long |>
+  group_by(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId
+  ) |>
+  summarise(
+    answer = first_non_missing(answer),
+    responsePrompt = first_non_missing(responsePrompt),
+    .groups = "drop"
+  ) |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId,
+    answer
+  ) |>
+  pivot_wider(
+    names_from = responseId,
+    values_from = answer,
+    names_prefix = "practice_"
+  ) |>
+  arrange(group, participantId)
+
+cat("Practice motivation rows:", nrow(practice_motivation_long), "\n")
+```
+
+# 11. Assessment Data Subsets
+
+This section preserves assessment components separately without scoring them.
+
+## 11.1 Value Estimation Assessment
+
+```{r assessment-value-estimation}
+assessment_value_estimation_long <- clean_item_level |>
+  filter(trialId %in% ASSESSMENT_VALUE_ESTIMATION_TRIALS) |>
+  arrange(group, participantId, trialId, responseId)
+
+cat("Assessment value-estimation rows:", nrow(assessment_value_estimation_long), "\n")
+```
+
+## 11.2 Choose Stronger Correlation Assessment
+
+```{r assessment-choose-r}
+assessment_choose_r_long <- clean_item_level |>
+  filter(trialId %in% ASSESSMENT_CHOOSE_R_TRIALS) |>
+  arrange(group, participantId, trialId, responseId)
+
+cat("Assessment choose-r rows:", nrow(assessment_choose_r_long), "\n")
+```
+
+## 11.3 Add-Points Assessment
+
+```{r assessment-add-points}
+assessment_add_points_long <- clean_item_level |>
+  filter(trialId %in% ASSESSMENT_ADD_POINTS_TRIALS) |>
+  arrange(group, participantId, trialId, responseId)
+
+cat("Assessment add-points rows:", nrow(assessment_add_points_long), "\n")
+```
+
+## 11.4 Connection-Making Assessment
+
+The connection-making questions are open response.
+
+```{r assessment-connection-making}
+assessment_connection_making_long <- clean_item_level |>
+  filter(
+    trialId %in% ASSESSMENT_CONNECTION_MAKING_TRIALS,
+    responseId %in% ASSESSMENT_CONNECTION_MAKING_IDS
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "source_file",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "duration",
+      "cleanedDuration",
+      "status",
+      "percentComplete"
+    ))
+  ) |>
+  arrange(group, participantId, responseId)
+
+assessment_connection_making_wide <- assessment_connection_making_long |>
+  group_by(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId
+  ) |>
+  summarise(
+    answer = first_non_missing(answer),
+    responsePrompt = first_non_missing(responsePrompt),
+    .groups = "drop"
+  ) |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    responseId,
+    answer
+  ) |>
+  pivot_wider(
+    names_from = responseId,
+    values_from = answer,
+    names_prefix = "assessment_connection_"
+  ) |>
+  arrange(group, participantId)
+
+cat("Assessment connection-making rows:", nrow(assessment_connection_making_long), "\n")
+```
+
+# 12. Interest Survey Data
+
+This section only preserves raw interest-survey rows. Reverse-coding will be done in 06 notebook
+
+```{r interest-survey}
+interest_survey_long <- clean_item_level |>
+  filter(trialId %in% INTEREST_TRIALS) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "source_file",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "duration",
+      "cleanedDuration",
+      "status",
+      "percentComplete"
+    ))
+  ) |>
+  arrange(group, participantId, trialId, responseId)
+
+interest_survey_wide <- interest_survey_long |>
+  group_by(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    trialId,
+    responseId
+  ) |>
+  summarise(
+    answer = first_non_missing(answer),
+    responsePrompt = first_non_missing(responsePrompt),
+    .groups = "drop"
+  ) |>
+  select(
+    participantId,
+    group,
+    lecture_type,
+    practice_type,
+    trialId,
+    responseId,
+    answer
+  ) |>
+  mutate(item_id = paste(trialId, responseId, sep = "__")) |>
+  select(-trialId, -responseId) |>
+  pivot_wider(
+    names_from = item_id,
+    values_from = answer,
+    names_prefix = "interest_"
+  ) |>
+  arrange(group, participantId)
+
+cat("Interest survey rows:", nrow(interest_survey_long), "\n")
+```
+
+# 13. Open-Text responses
+
+This broad file preserves likely open-text responses across phases. It is intentionally inclusive and is not used to define any specific study phase.
+
+```{r open-text-candidates}
+all_open_text_candidates <- clean_item_level |>
+  mutate(
+    answer_chr = as.character(answer),
+    answer_trimmed = str_trim(answer_chr),
+    answer_num = suppressWarnings(as.numeric(answer_trimmed)),
+    answer_length = str_length(answer_trimmed),
+    looks_like_json = str_detect(answer_trimmed, "^\\s*[\\[{]"),
+    looks_numeric = !is.na(answer_num),
+    likely_open_text = case_when(
+      responseId %in% c(
+        "q-correlation",
+        "q-slope",
+        "q-motivation",
+        "switch-question-response-a",
+        "switch-question-response-b",
+        "q-same",
+        "q-different"
+      ) ~ TRUE,
+      str_detect(
+        str_to_lower(coalesce(responsePrompt, "")),
+        "describe|explain|list|why|how|question|comment|thought|similar|different|motivation"
+      ) ~ TRUE,
+      answer_length >= 25 & !looks_like_json & !looks_numeric ~ TRUE,
+      TRUE ~ FALSE
+    )
+  ) |>
+  filter(
+    is_nonempty_text(answer_trimmed),
+    likely_open_text
+  ) |>
+  select(
+    any_of(c(
+      "participantId",
+      "group",
+      "lecture_type",
+      "practice_type",
+      "source_file",
+      "trialId",
+      "responseId",
+      "responsePrompt",
+      "answer",
+      "duration",
+      "cleanedDuration",
+      "status",
+      "percentComplete"
+    )),
+    answer_length
+  ) |>
+  arrange(group, participantId, trialId, responseId)
+
+cat("Open-text candidate rows:", nrow(all_open_text_candidates), "\n")
+```
+
+# 14. Save Clean Outputs
+
+```{r save-clean-outputs}
+write_csv(clean_item_level, file.path(data_derived_dir, "clean_item_level.csv"))
+write_csv(participant_condition_index, file.path(data_derived_dir, "participant_condition_index.csv"))
+write_csv(all_answer_rows, file.path(data_derived_dir, "all_answer_rows.csv"))
+
+write_csv(pre_survey_long, file.path(data_derived_dir, "pre_survey_long.csv"))
+write_csv(pre_survey_wide, file.path(data_derived_dir, "pre_survey_wide.csv"))
+write_csv(definition_responses, file.path(data_derived_dir, "definition_responses.csv"))
+write_csv(definition_responses_wide, file.path(data_derived_dir, "definition_responses_wide.csv"))
+write_csv(stats_background_long, file.path(data_derived_dir, "stats_background_long.csv"))
+write_csv(stats_background_wide, file.path(data_derived_dir, "stats_background_wide.csv"))
+
+write_csv(practice_motivation_long, file.path(data_derived_dir, "practice_motivation_long.csv"))
+write_csv(practice_motivation_wide, file.path(data_derived_dir, "practice_motivation_wide.csv"))
+
+write_csv(assessment_value_estimation_long, file.path(data_derived_dir, "assessment_value_estimation_long.csv"))
+write_csv(assessment_choose_r_long, file.path(data_derived_dir, "assessment_choose_r_long.csv"))
+write_csv(assessment_add_points_long, file.path(data_derived_dir, "assessment_add_points_long.csv"))
+write_csv(assessment_connection_making_long, file.path(data_derived_dir, "assessment_connection_making_long.csv"))
+write_csv(assessment_connection_making_wide, file.path(data_derived_dir, "assessment_connection_making_wide.csv"))
+
+write_csv(interest_survey_long, file.path(data_derived_dir, "interest_survey_long.csv"))
+write_csv(interest_survey_wide, file.path(data_derived_dir, "interest_survey_wide.csv"))
+
+write_csv(all_open_text_candidates, file.path(data_derived_dir, "all_open_text_candidates.csv"))
+
+# These are only for debugging
+write_csv(row_counts, file.path(output_dir, "row_counts.csv"))
+write_csv(column_inventory, file.path(output_dir, "column_inventory.csv"))
+write_csv(participant_counts, file.path(output_dir, "participant_counts.csv"))
+write_csv(participant_completion_summary, file.path(output_dir, "participant_completion_summary.csv"))
+write_csv(trial_overview, file.path(output_dir, "trial_overview.csv"))
+write_csv(response_overview, file.path(output_dir, "response_overview.csv"))
+write_csv(trial_response_overview, file.path(output_dir, "trial_response_overview.csv"))
+write_csv(stats_background_distribution, file.path(output_dir, "stats_background_distribution.csv"))
+
+cat("Saved clean data outputs to:", data_derived_dir, "\n")
+cat("Saved overview outputs to:", output_dir, "\n")
+```
+
+# 15. Output Files
+
+```{r output-files}
+created_files <- tibble(
+  file = c(
+    "clean_item_level.csv",
+    "participant_condition_index.csv",
+    "all_answer_rows.csv",
+    "pre_survey_long.csv",
+    "pre_survey_wide.csv",
+    "definition_responses.csv",
+    "definition_responses_wide.csv",
+    "stats_background_long.csv",
+    "stats_background_wide.csv",
+    "practice_motivation_long.csv",
+    "practice_motivation_wide.csv",
+    "assessment_value_estimation_long.csv",
+    "assessment_choose_r_long.csv",
+    "assessment_add_points_long.csv",
+    "assessment_connection_making_long.csv",
+    "assessment_connection_making_wide.csv",
+    "interest_survey_long.csv",
+    "interest_survey_wide.csv",
+    "all_open_text_candidates.csv"
+  ),
+  folder = data_derived_dir
+)
+
+created_overview_files <- tibble(
+  file = c(
+    "row_counts.csv",
+    "column_inventory.csv",
+    "participant_counts.csv",
+    "participant_completion_summary.csv",
+    "trial_overview.csv",
+    "response_overview.csv",
+    "trial_response_overview.csv",
+    "stats_background_distribution.csv"
+  ),
+  folder = output_dir
+)
+
+cat("Created", nrow(created_files), "derived data files and",
+    nrow(created_overview_files), "overview files.\n")
+```

@@ -1,0 +1,6 @@
+"0","pretty_table("
+"0","  participant_counts |>"
+"0","    mutate(condition = make_group_labels(group)) |>"
+"0","    select(condition, n_participants),"
+"0","  caption = ""Participants per condition"""
+"0",")"

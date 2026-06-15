@@ -1,0 +1,27 @@
+{
+    "id": "6C3F2EBF",
+    "path": "~/Downloads/WPI/vis/plotwise-analysis/scripts/04_add_points_analysis.Rmd",
+    "project_path": "scripts/04_add_points_analysis.Rmd",
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1780511750461.0,
+    "source_on_save": false,
+    "relative_order": 7,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "2000,27",
+        "scrollLine": "1995",
+        "last_setup_crc32": "825fdbd9a6c2840f"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1781507087,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1781507087756,
+    "read_only": false,
+    "read_only_alternatives": []
+}

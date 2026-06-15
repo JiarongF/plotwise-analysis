@@ -1,0 +1,769 @@
+group,trialId,responseId,responsePrompt,n_rows
+CC,$screen-recording.components.screenRecordingPermission,screenRecordingPermission,Screen recording enabled,20
+CC,$screen-recording.components.screenRecordingPermission,windowEvents,NA,20
+CC,add-points,break,NA,20
+CC,add-points,windowEvents,NA,20
+CC,add-points-1,add_points,NA,20
+CC,add-points-1,windowEvents,NA,20
+CC,add-points-2,add_points,NA,20
+CC,add-points-2,windowEvents,NA,20
+CC,add-points-3,add_points,NA,20
+CC,add-points-3,windowEvents,NA,20
+CC,after-watch,windowEvents,NA,20
+CC,after-watch,NA,NA,20
+CC,assessment intro,additional-questions,NA,20
+CC,assessment intro,windowEvents,NA,20
+CC,assessment questions part one,q-correlation,"In your own words, please describe what a correlation is:",20
+CC,assessment questions part one,q-motivation,"You have now finished the learning part of the experiment. Next up we have some questions about what you learned and how you felt about the online lecture.
+
+But first,if there is time at the end, would you be interested in trying another problem?",20
+CC,assessment questions part one,q-slope,"In your own words, please describe what a slope is:",20
+CC,assessment questions part one,windowEvents,NA,20
+CC,assessment-guess-correlation,break,NA,20
+CC,assessment-guess-correlation,windowEvents,NA,20
+CC,assessment-guess-slope,break,NA,20
+CC,assessment-guess-slope,windowEvents,NA,20
+CC,bonus-intro,windowEvents,NA,20
+CC,bonus-intro,NA,NA,20
+CC,choose-strongest-r-1,graph_choice,NA,20
+CC,choose-strongest-r-1,windowEvents,NA,20
+CC,choose-strongest-r-2,graph_choice,NA,20
+CC,choose-strongest-r-2,windowEvents,NA,20
+CC,compare-r,break,NA,20
+CC,compare-r,windowEvents,NA,20
+CC,connection-making,q-different,Please list as many ways slope and correlation are different as you can think of.,20
+CC,connection-making,q-same,Please list as many ways slope and correlation are the same as you can think of.,20
+CC,connection-making,switch-question-response-a,"Let’s say a researcher has a correlation of .5 and a slope of .25. If they switched X and Y.
+
+a. What would happen to the correlation?",20
+CC,connection-making,switch-question-response-b,b. What would happen to the slope?,20
+CC,connection-making,windowEvents,NA,20
+CC,consent,accept,Are you ready to continue?,20
+CC,consent,prolificId,Please enter your Prolific ID,20
+CC,consent,windowEvents,NA,20
+CC,control-axis-swap-correlation,axis_swap_correlation_response,NA,20
+CC,control-axis-swap-correlation,windowEvents,NA,20
+CC,control-axis-swap-slope,axis_swap_slope_response,NA,20
+CC,control-axis-swap-slope,windowEvents,NA,20
+CC,control-bonus-strong-r,bonus-strong-r_response,NA,20
+CC,control-bonus-strong-r,windowEvents,NA,20
+CC,control-bonus-weak-r,bonus-weak-r_response,NA,20
+CC,control-bonus-weak-r,windowEvents,NA,20
+CC,control-r-1,stat_guess,NA,20
+CC,control-r-1,stat_guess_initial,NA,20
+CC,control-r-1,stat_guess_sign,NA,20
+CC,control-r-1,windowEvents,NA,20
+CC,control-r-2,stat_guess,NA,20
+CC,control-r-2,stat_guess_initial,NA,20
+CC,control-r-2,stat_guess_sign,NA,20
+CC,control-r-2,windowEvents,NA,20
+CC,control-r-3,stat_guess,NA,20
+CC,control-r-3,stat_guess_initial,NA,20
+CC,control-r-3,stat_guess_sign,NA,20
+CC,control-r-3,windowEvents,NA,20
+CC,control-r-4,stat_guess,NA,20
+CC,control-r-4,stat_guess_initial,NA,20
+CC,control-r-4,stat_guess_sign,NA,20
+CC,control-r-4,windowEvents,NA,20
+CC,control-r-5,stat_guess,NA,20
+CC,control-r-5,stat_guess_initial,NA,20
+CC,control-r-5,stat_guess_sign,NA,20
+CC,control-r-5,windowEvents,NA,20
+CC,control-r-6,stat_guess,NA,20
+CC,control-r-6,stat_guess_initial,NA,20
+CC,control-r-6,stat_guess_sign,NA,20
+CC,control-r-6,windowEvents,NA,20
+CC,control-r-7,stat_guess,NA,20
+CC,control-r-7,stat_guess_initial,NA,20
+CC,control-r-7,stat_guess_sign,NA,20
+CC,control-r-7,windowEvents,NA,20
+CC,control-r-8,stat_guess,NA,20
+CC,control-r-8,stat_guess_initial,NA,20
+CC,control-r-8,stat_guess_sign,NA,20
+CC,control-r-8,windowEvents,NA,20
+CC,control-same-slope-different-r,same-slope-different-r_response,NA,20
+CC,control-same-slope-different-r,windowEvents,NA,20
+CC,control-slope-1,stat_guess,NA,20
+CC,control-slope-1,stat_guess_initial,NA,20
+CC,control-slope-1,stat_guess_sign,NA,20
+CC,control-slope-1,windowEvents,NA,20
+CC,control-slope-2,stat_guess,NA,20
+CC,control-slope-2,stat_guess_initial,NA,20
+CC,control-slope-2,stat_guess_sign,NA,20
+CC,control-slope-2,windowEvents,NA,20
+CC,control-slope-3,stat_guess,NA,20
+CC,control-slope-3,stat_guess_initial,NA,20
+CC,control-slope-3,stat_guess_sign,NA,20
+CC,control-slope-3,windowEvents,NA,20
+CC,control-slope-4,stat_guess,NA,20
+CC,control-slope-4,stat_guess_initial,NA,20
+CC,control-slope-4,stat_guess_sign,NA,20
+CC,control-slope-4,windowEvents,NA,20
+CC,control-slope-5,stat_guess,NA,20
+CC,control-slope-5,stat_guess_initial,NA,20
+CC,control-slope-5,stat_guess_sign,NA,20
+CC,control-slope-5,windowEvents,NA,20
+CC,control-slope-6,stat_guess,NA,20
+CC,control-slope-6,stat_guess_initial,NA,20
+CC,control-slope-6,stat_guess_sign,NA,20
+CC,control-slope-6,windowEvents,NA,20
+CC,control-video,video_done,NA,20
+CC,control-video,windowEvents,NA,20
+CC,futureInterestSurvey,interest_any_study,NA,20
+CC,futureInterestSurvey,interest_dynamic_vis_study,NA,20
+CC,futureInterestSurvey,interest_statistics_study,NA,20
+CC,futureInterestSurvey,windowEvents,NA,20
+CC,guess-correlation,break,NA,20
+CC,guess-correlation,windowEvents,NA,20
+CC,guess-correlation-1,stat_guess,NA,20
+CC,guess-correlation-1,stat_guess_initial,NA,20
+CC,guess-correlation-1,stat_guess_sign,NA,20
+CC,guess-correlation-1,windowEvents,NA,20
+CC,guess-correlation-10,stat_guess,NA,20
+CC,guess-correlation-10,stat_guess_initial,NA,20
+CC,guess-correlation-10,stat_guess_sign,NA,20
+CC,guess-correlation-10,windowEvents,NA,20
+CC,guess-correlation-11,stat_guess,NA,20
+CC,guess-correlation-11,stat_guess_initial,NA,20
+CC,guess-correlation-11,stat_guess_sign,NA,20
+CC,guess-correlation-11,windowEvents,NA,20
+CC,guess-correlation-2,stat_guess,NA,20
+CC,guess-correlation-2,stat_guess_initial,NA,20
+CC,guess-correlation-2,stat_guess_sign,NA,20
+CC,guess-correlation-2,windowEvents,NA,20
+CC,guess-correlation-3,stat_guess,NA,20
+CC,guess-correlation-3,stat_guess_initial,NA,20
+CC,guess-correlation-3,stat_guess_sign,NA,20
+CC,guess-correlation-3,windowEvents,NA,20
+CC,guess-correlation-4,stat_guess,NA,20
+CC,guess-correlation-4,stat_guess_initial,NA,20
+CC,guess-correlation-4,stat_guess_sign,NA,20
+CC,guess-correlation-4,windowEvents,NA,20
+CC,guess-correlation-5,stat_guess,NA,20
+CC,guess-correlation-5,stat_guess_initial,NA,20
+CC,guess-correlation-5,stat_guess_sign,NA,20
+CC,guess-correlation-5,windowEvents,NA,20
+CC,guess-correlation-6,stat_guess,NA,20
+CC,guess-correlation-6,stat_guess_initial,NA,20
+CC,guess-correlation-6,stat_guess_sign,NA,20
+CC,guess-correlation-6,windowEvents,NA,20
+CC,guess-correlation-7,stat_guess,NA,20
+CC,guess-correlation-7,stat_guess_initial,NA,20
+CC,guess-correlation-7,stat_guess_sign,NA,20
+CC,guess-correlation-7,windowEvents,NA,20
+CC,guess-correlation-8,stat_guess,NA,20
+CC,guess-correlation-8,stat_guess_initial,NA,20
+CC,guess-correlation-8,stat_guess_sign,NA,20
+CC,guess-correlation-8,windowEvents,NA,20
+CC,guess-correlation-9,stat_guess,NA,20
+CC,guess-correlation-9,stat_guess_initial,NA,20
+CC,guess-correlation-9,stat_guess_sign,NA,20
+CC,guess-correlation-9,windowEvents,NA,20
+CC,guess-slope,break,NA,20
+CC,guess-slope,windowEvents,NA,20
+CC,guess-slope-1,stat_guess,NA,20
+CC,guess-slope-1,stat_guess_initial,NA,20
+CC,guess-slope-1,stat_guess_sign,NA,20
+CC,guess-slope-1,windowEvents,NA,20
+CC,guess-slope-2,stat_guess,NA,20
+CC,guess-slope-2,stat_guess_initial,NA,20
+CC,guess-slope-2,stat_guess_sign,NA,20
+CC,guess-slope-2,windowEvents,NA,20
+CC,guess-slope-3,stat_guess,NA,20
+CC,guess-slope-3,stat_guess_initial,NA,20
+CC,guess-slope-3,stat_guess_sign,NA,20
+CC,guess-slope-3,windowEvents,NA,20
+CC,guess-slope-4,stat_guess,NA,20
+CC,guess-slope-4,stat_guess_initial,NA,20
+CC,guess-slope-4,stat_guess_sign,NA,20
+CC,guess-slope-4,windowEvents,NA,20
+CC,guess-slope-5,stat_guess,NA,20
+CC,guess-slope-5,stat_guess_initial,NA,20
+CC,guess-slope-5,stat_guess_sign,NA,20
+CC,guess-slope-5,windowEvents,NA,20
+CC,guess-slope-6,stat_guess,NA,20
+CC,guess-slope-6,stat_guess_initial,NA,20
+CC,guess-slope-6,stat_guess_sign,NA,20
+CC,guess-slope-6,windowEvents,NA,20
+CC,guess-slope-7,stat_guess,NA,20
+CC,guess-slope-7,stat_guess_initial,NA,20
+CC,guess-slope-7,stat_guess_sign,NA,20
+CC,guess-slope-7,windowEvents,NA,20
+CC,interest-survey-intro,break,NA,20
+CC,interest-survey-intro,windowEvents,NA,20
+CC,intro,windowEvents,NA,20
+CC,intro,NA,NA,20
+CC,maintainedSituationalInterest,msi_enjoyed_learning,How much have you enjoyed learning about correlation and slope?,20
+CC,maintainedSituationalInterest,msi_excited,"Now please rate how you feel about the topics you encountered in this session.
+
+How excited are you about correlation and slope?",20
+CC,maintainedSituationalInterest,msi_interesting_corrslope,How interesting do you find correlation and slope?,20
+CC,maintainedSituationalInterest,msi_interesting_stats,How interesting do you find statistics?,20
+CC,maintainedSituationalInterest,windowEvents,NA,20
+CC,participantTags,participantTags,NA,20
+CC,practice-solutions,practice_solutions_viewed,NA,20
+CC,practice-solutions,windowEvents,NA,20
+CC,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",20
+CC,pre questions,q-class-taken,Have you ever taken a statistics class?,20
+CC,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20
+CC,pre questions,q-correlation,"In your own words, please describe what a correlation is:",20
+CC,pre questions,q-grade,"If yes, what grade did you get in the class?",20
+CC,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",20
+CC,pre questions,q-slope,"In your own words, please describe what a slope is:",20
+CC,pre questions,windowEvents,NA,20
+CC,reflect,break,NA,20
+CC,reflect,windowEvents,NA,20
+CC,thinkaloud,windowEvents,NA,20
+CC,thinkaloud,NA,NA,20
+CC,triggeredSituationalInterest,tsi_boring_video,The correlation and slope video was boring,20
+CC,triggeredSituationalInterest,tsi_enjoyed_learning,I've enjoyed learning new things,20
+CC,triggeredSituationalInterest,tsi_enjoyed_session,I've enjoyed this session,20
+CC,triggeredSituationalInterest,tsi_fun_stats,It's been fun to learn about statistics this way,20
+CC,triggeredSituationalInterest,tsi_fun_video,It was fun to watch the video,20
+CC,triggeredSituationalInterest,tsi_session_boring,This session has been boring,20
+CC,triggeredSituationalInterest,tsi_session_fun,This session has been fun,20
+CC,triggeredSituationalInterest,tsi_session_interesting,This session has been interesting,20
+CC,triggeredSituationalInterest,windowEvents,NA,20
+CC,video-instruction,windowEvents,NA,20
+CC,video-instruction,NA,NA,20
+CP,$screen-recording.components.screenRecordingPermission,screenRecordingPermission,Screen recording enabled,20
+CP,$screen-recording.components.screenRecordingPermission,windowEvents,NA,20
+CP,add-points,break,NA,20
+CP,add-points,windowEvents,NA,20
+CP,add-points-1,add_points,NA,20
+CP,add-points-1,windowEvents,NA,20
+CP,add-points-2,add_points,NA,20
+CP,add-points-2,windowEvents,NA,20
+CP,add-points-3,add_points,NA,20
+CP,add-points-3,windowEvents,NA,20
+CP,after-watch,windowEvents,NA,20
+CP,after-watch,NA,NA,20
+CP,assessment intro,additional-questions,NA,20
+CP,assessment intro,windowEvents,NA,20
+CP,assessment questions part one,q-correlation,"In your own words, please describe what a correlation is:",20
+CP,assessment questions part one,q-motivation,"You have now finished the learning part of the experiment. Next up we have some questions about what you learned and how you felt about the online lecture.
+
+But first,if there is time at the end, would you be interested in trying another problem?",20
+CP,assessment questions part one,q-slope,"In your own words, please describe what a slope is:",20
+CP,assessment questions part one,windowEvents,NA,20
+CP,assessment-guess-correlation,break,NA,20
+CP,assessment-guess-correlation,windowEvents,NA,20
+CP,assessment-guess-slope,break,NA,20
+CP,assessment-guess-slope,windowEvents,NA,20
+CP,choose-strongest-r-1,graph_choice,NA,20
+CP,choose-strongest-r-1,windowEvents,NA,20
+CP,choose-strongest-r-2,graph_choice,NA,20
+CP,choose-strongest-r-2,windowEvents,NA,20
+CP,compare-r,break,NA,20
+CP,compare-r,windowEvents,NA,20
+CP,connection-making,q-different,Please list as many ways slope and correlation are different as you can think of.,20
+CP,connection-making,q-same,Please list as many ways slope and correlation are the same as you can think of.,20
+CP,connection-making,switch-question-response-a,"Let’s say a researcher has a correlation of .5 and a slope of .25. If they switched X and Y.
+
+a. What would happen to the correlation?",20
+CP,connection-making,switch-question-response-b,b. What would happen to the slope?,20
+CP,connection-making,windowEvents,NA,20
+CP,consent,accept,Are you ready to continue?,20
+CP,consent,prolificId,Please enter your Prolific ID,20
+CP,consent,windowEvents,NA,20
+CP,control-video,video_done,NA,20
+CP,control-video,windowEvents,NA,20
+CP,futureInterestSurvey,interest_any_study,NA,20
+CP,futureInterestSurvey,interest_dynamic_vis_study,NA,20
+CP,futureInterestSurvey,interest_statistics_study,NA,20
+CP,futureInterestSurvey,windowEvents,NA,20
+CP,guess-correlation-1,stat_guess,NA,20
+CP,guess-correlation-1,stat_guess_initial,NA,20
+CP,guess-correlation-1,stat_guess_sign,NA,20
+CP,guess-correlation-1,windowEvents,NA,20
+CP,guess-correlation-10,stat_guess,NA,20
+CP,guess-correlation-10,stat_guess_initial,NA,20
+CP,guess-correlation-10,stat_guess_sign,NA,20
+CP,guess-correlation-10,windowEvents,NA,20
+CP,guess-correlation-11,stat_guess,NA,20
+CP,guess-correlation-11,stat_guess_initial,NA,20
+CP,guess-correlation-11,stat_guess_sign,NA,20
+CP,guess-correlation-11,windowEvents,NA,20
+CP,guess-correlation-2,stat_guess,NA,20
+CP,guess-correlation-2,stat_guess_initial,NA,20
+CP,guess-correlation-2,stat_guess_sign,NA,20
+CP,guess-correlation-2,windowEvents,NA,20
+CP,guess-correlation-3,stat_guess,NA,20
+CP,guess-correlation-3,stat_guess_initial,NA,20
+CP,guess-correlation-3,stat_guess_sign,NA,20
+CP,guess-correlation-3,windowEvents,NA,20
+CP,guess-correlation-4,stat_guess,NA,20
+CP,guess-correlation-4,stat_guess_initial,NA,20
+CP,guess-correlation-4,stat_guess_sign,NA,20
+CP,guess-correlation-4,windowEvents,NA,20
+CP,guess-correlation-5,stat_guess,NA,20
+CP,guess-correlation-5,stat_guess_initial,NA,20
+CP,guess-correlation-5,stat_guess_sign,NA,20
+CP,guess-correlation-5,windowEvents,NA,20
+CP,guess-correlation-6,stat_guess,NA,20
+CP,guess-correlation-6,stat_guess_initial,NA,20
+CP,guess-correlation-6,stat_guess_sign,NA,20
+CP,guess-correlation-6,windowEvents,NA,20
+CP,guess-correlation-7,stat_guess,NA,20
+CP,guess-correlation-7,stat_guess_initial,NA,20
+CP,guess-correlation-7,stat_guess_sign,NA,20
+CP,guess-correlation-7,windowEvents,NA,20
+CP,guess-correlation-8,stat_guess,NA,20
+CP,guess-correlation-8,stat_guess_initial,NA,20
+CP,guess-correlation-8,stat_guess_sign,NA,20
+CP,guess-correlation-8,windowEvents,NA,20
+CP,guess-correlation-9,stat_guess,NA,20
+CP,guess-correlation-9,stat_guess_initial,NA,20
+CP,guess-correlation-9,stat_guess_sign,NA,20
+CP,guess-correlation-9,windowEvents,NA,20
+CP,guess-slope-1,stat_guess,NA,20
+CP,guess-slope-1,stat_guess_initial,NA,20
+CP,guess-slope-1,stat_guess_sign,NA,20
+CP,guess-slope-1,windowEvents,NA,20
+CP,guess-slope-2,stat_guess,NA,20
+CP,guess-slope-2,stat_guess_initial,NA,20
+CP,guess-slope-2,stat_guess_sign,NA,20
+CP,guess-slope-2,windowEvents,NA,20
+CP,guess-slope-3,stat_guess,NA,20
+CP,guess-slope-3,stat_guess_initial,NA,20
+CP,guess-slope-3,stat_guess_sign,NA,20
+CP,guess-slope-3,windowEvents,NA,20
+CP,guess-slope-4,stat_guess,NA,20
+CP,guess-slope-4,stat_guess_initial,NA,20
+CP,guess-slope-4,stat_guess_sign,NA,20
+CP,guess-slope-4,windowEvents,NA,20
+CP,guess-slope-5,stat_guess,NA,20
+CP,guess-slope-5,stat_guess_initial,NA,20
+CP,guess-slope-5,stat_guess_sign,NA,20
+CP,guess-slope-5,windowEvents,NA,20
+CP,guess-slope-6,stat_guess,NA,20
+CP,guess-slope-6,stat_guess_initial,NA,20
+CP,guess-slope-6,stat_guess_sign,NA,20
+CP,guess-slope-6,windowEvents,NA,20
+CP,guess-slope-7,stat_guess,NA,20
+CP,guess-slope-7,stat_guess_initial,NA,20
+CP,guess-slope-7,stat_guess_sign,NA,20
+CP,guess-slope-7,windowEvents,NA,20
+CP,interest-survey-intro,break,NA,20
+CP,interest-survey-intro,windowEvents,NA,20
+CP,intro,windowEvents,NA,20
+CP,intro,NA,NA,20
+CP,maintainedSituationalInterest,msi_enjoyed_learning,How much have you enjoyed learning about correlation and slope?,20
+CP,maintainedSituationalInterest,msi_excited,"Now please rate how you feel about the topics you encountered in this session.
+
+How excited are you about correlation and slope?",20
+CP,maintainedSituationalInterest,msi_interesting_corrslope,How interesting do you find correlation and slope?,20
+CP,maintainedSituationalInterest,msi_interesting_stats,How interesting do you find statistics?,20
+CP,maintainedSituationalInterest,windowEvents,NA,20
+CP,paint-brush,plotwise_progress,NA,20
+CP,paint-brush,windowEvents,NA,20
+CP,participantTags,participantTags,NA,20
+CP,point-clicker,plotwise_progress,NA,20
+CP,point-clicker,windowEvents,NA,20
+CP,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",20
+CP,pre questions,q-class-taken,Have you ever taken a statistics class?,20
+CP,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20
+CP,pre questions,q-correlation,"In your own words, please describe what a correlation is:",20
+CP,pre questions,q-grade,"If yes, what grade did you get in the class?",20
+CP,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",20
+CP,pre questions,q-slope,"In your own words, please describe what a slope is:",20
+CP,pre questions,windowEvents,NA,20
+CP,reflect,break,NA,20
+CP,reflect,windowEvents,NA,20
+CP,thinkaloud,windowEvents,NA,20
+CP,thinkaloud,NA,NA,20
+CP,triggeredSituationalInterest,tsi_boring_video,The correlation and slope video was boring,20
+CP,triggeredSituationalInterest,tsi_enjoyed_learning,I've enjoyed learning new things,20
+CP,triggeredSituationalInterest,tsi_enjoyed_session,I've enjoyed this session,20
+CP,triggeredSituationalInterest,tsi_fun_stats,It's been fun to learn about statistics this way,20
+CP,triggeredSituationalInterest,tsi_fun_video,It was fun to watch the video,20
+CP,triggeredSituationalInterest,tsi_session_boring,This session has been boring,20
+CP,triggeredSituationalInterest,tsi_session_fun,This session has been fun,20
+CP,triggeredSituationalInterest,tsi_session_interesting,This session has been interesting,20
+CP,triggeredSituationalInterest,windowEvents,NA,20
+CP,video-instruction,windowEvents,NA,20
+CP,video-instruction,NA,NA,20
+PC,$screen-recording.components.screenRecordingPermission,screenRecordingPermission,Screen recording enabled,20
+PC,$screen-recording.components.screenRecordingPermission,windowEvents,NA,20
+PC,add-points,break,NA,20
+PC,add-points,windowEvents,NA,20
+PC,add-points-1,add_points,NA,20
+PC,add-points-1,windowEvents,NA,20
+PC,add-points-2,add_points,NA,20
+PC,add-points-2,windowEvents,NA,20
+PC,add-points-3,add_points,NA,20
+PC,add-points-3,windowEvents,NA,20
+PC,after-watch,windowEvents,NA,20
+PC,after-watch,NA,NA,20
+PC,assessment intro,additional-questions,NA,20
+PC,assessment intro,windowEvents,NA,20
+PC,assessment questions part one,q-correlation,"In your own words, please describe what a correlation is:",20
+PC,assessment questions part one,q-motivation,"You have now finished the learning part of the experiment. Next up we have some questions about what you learned and how you felt about the online lecture.
+
+But first,if there is time at the end, would you be interested in trying another problem?",20
+PC,assessment questions part one,q-slope,"In your own words, please describe what a slope is:",20
+PC,assessment questions part one,windowEvents,NA,20
+PC,assessment-guess-correlation,break,NA,20
+PC,assessment-guess-correlation,windowEvents,NA,20
+PC,assessment-guess-slope,break,NA,20
+PC,assessment-guess-slope,windowEvents,NA,20
+PC,bonus-intro,windowEvents,NA,20
+PC,bonus-intro,NA,NA,20
+PC,choose-strongest-r-1,graph_choice,NA,20
+PC,choose-strongest-r-1,windowEvents,NA,20
+PC,choose-strongest-r-2,graph_choice,NA,20
+PC,choose-strongest-r-2,windowEvents,NA,20
+PC,compare-r,break,NA,20
+PC,compare-r,windowEvents,NA,20
+PC,connection-making,q-different,Please list as many ways slope and correlation are different as you can think of.,20
+PC,connection-making,q-same,Please list as many ways slope and correlation are the same as you can think of.,20
+PC,connection-making,switch-question-response-a,"Let’s say a researcher has a correlation of .5 and a slope of .25. If they switched X and Y.
+
+a. What would happen to the correlation?",20
+PC,connection-making,switch-question-response-b,b. What would happen to the slope?,20
+PC,connection-making,windowEvents,NA,20
+PC,consent,accept,Are you ready to continue?,20
+PC,consent,prolificId,Please enter your Prolific ID,20
+PC,consent,windowEvents,NA,20
+PC,control-axis-swap-correlation,axis_swap_correlation_response,NA,20
+PC,control-axis-swap-correlation,windowEvents,NA,20
+PC,control-axis-swap-slope,axis_swap_slope_response,NA,20
+PC,control-axis-swap-slope,windowEvents,NA,20
+PC,control-bonus-strong-r,bonus-strong-r_response,NA,20
+PC,control-bonus-strong-r,windowEvents,NA,20
+PC,control-bonus-weak-r,bonus-weak-r_response,NA,20
+PC,control-bonus-weak-r,windowEvents,NA,20
+PC,control-r-1,stat_guess,NA,20
+PC,control-r-1,stat_guess_initial,NA,20
+PC,control-r-1,stat_guess_sign,NA,20
+PC,control-r-1,windowEvents,NA,20
+PC,control-r-2,stat_guess,NA,20
+PC,control-r-2,stat_guess_initial,NA,20
+PC,control-r-2,stat_guess_sign,NA,20
+PC,control-r-2,windowEvents,NA,20
+PC,control-r-3,stat_guess,NA,20
+PC,control-r-3,stat_guess_initial,NA,20
+PC,control-r-3,stat_guess_sign,NA,20
+PC,control-r-3,windowEvents,NA,20
+PC,control-r-4,stat_guess,NA,20
+PC,control-r-4,stat_guess_initial,NA,20
+PC,control-r-4,stat_guess_sign,NA,20
+PC,control-r-4,windowEvents,NA,20
+PC,control-r-5,stat_guess,NA,20
+PC,control-r-5,stat_guess_initial,NA,20
+PC,control-r-5,stat_guess_sign,NA,20
+PC,control-r-5,windowEvents,NA,20
+PC,control-r-6,stat_guess,NA,20
+PC,control-r-6,stat_guess_initial,NA,20
+PC,control-r-6,stat_guess_sign,NA,20
+PC,control-r-6,windowEvents,NA,20
+PC,control-r-7,stat_guess,NA,20
+PC,control-r-7,stat_guess_initial,NA,20
+PC,control-r-7,stat_guess_sign,NA,20
+PC,control-r-7,windowEvents,NA,20
+PC,control-r-8,stat_guess,NA,20
+PC,control-r-8,stat_guess_initial,NA,20
+PC,control-r-8,stat_guess_sign,NA,20
+PC,control-r-8,windowEvents,NA,20
+PC,control-same-slope-different-r,same-slope-different-r_response,NA,20
+PC,control-same-slope-different-r,windowEvents,NA,20
+PC,control-slope-1,stat_guess,NA,20
+PC,control-slope-1,stat_guess_initial,NA,20
+PC,control-slope-1,stat_guess_sign,NA,20
+PC,control-slope-1,windowEvents,NA,20
+PC,control-slope-2,stat_guess,NA,20
+PC,control-slope-2,stat_guess_initial,NA,20
+PC,control-slope-2,stat_guess_sign,NA,20
+PC,control-slope-2,windowEvents,NA,20
+PC,control-slope-3,stat_guess,NA,20
+PC,control-slope-3,stat_guess_initial,NA,20
+PC,control-slope-3,stat_guess_sign,NA,20
+PC,control-slope-3,windowEvents,NA,20
+PC,control-slope-4,stat_guess,NA,20
+PC,control-slope-4,stat_guess_initial,NA,20
+PC,control-slope-4,stat_guess_sign,NA,20
+PC,control-slope-4,windowEvents,NA,20
+PC,control-slope-5,stat_guess,NA,20
+PC,control-slope-5,stat_guess_initial,NA,20
+PC,control-slope-5,stat_guess_sign,NA,20
+PC,control-slope-5,windowEvents,NA,20
+PC,control-slope-6,stat_guess,NA,20
+PC,control-slope-6,stat_guess_initial,NA,20
+PC,control-slope-6,stat_guess_sign,NA,20
+PC,control-slope-6,windowEvents,NA,20
+PC,futureInterestSurvey,interest_any_study,NA,20
+PC,futureInterestSurvey,interest_dynamic_vis_study,NA,20
+PC,futureInterestSurvey,interest_statistics_study,NA,20
+PC,futureInterestSurvey,windowEvents,NA,20
+PC,guess-correlation,break,NA,20
+PC,guess-correlation,windowEvents,NA,20
+PC,guess-correlation-1,stat_guess,NA,20
+PC,guess-correlation-1,stat_guess_initial,NA,20
+PC,guess-correlation-1,stat_guess_sign,NA,20
+PC,guess-correlation-1,windowEvents,NA,20
+PC,guess-correlation-10,stat_guess,NA,20
+PC,guess-correlation-10,stat_guess_initial,NA,20
+PC,guess-correlation-10,stat_guess_sign,NA,20
+PC,guess-correlation-10,windowEvents,NA,20
+PC,guess-correlation-11,stat_guess,NA,20
+PC,guess-correlation-11,stat_guess_initial,NA,20
+PC,guess-correlation-11,stat_guess_sign,NA,20
+PC,guess-correlation-11,windowEvents,NA,20
+PC,guess-correlation-2,stat_guess,NA,20
+PC,guess-correlation-2,stat_guess_initial,NA,20
+PC,guess-correlation-2,stat_guess_sign,NA,20
+PC,guess-correlation-2,windowEvents,NA,20
+PC,guess-correlation-3,stat_guess,NA,20
+PC,guess-correlation-3,stat_guess_initial,NA,20
+PC,guess-correlation-3,stat_guess_sign,NA,20
+PC,guess-correlation-3,windowEvents,NA,20
+PC,guess-correlation-4,stat_guess,NA,20
+PC,guess-correlation-4,stat_guess_initial,NA,20
+PC,guess-correlation-4,stat_guess_sign,NA,20
+PC,guess-correlation-4,windowEvents,NA,20
+PC,guess-correlation-5,stat_guess,NA,20
+PC,guess-correlation-5,stat_guess_initial,NA,20
+PC,guess-correlation-5,stat_guess_sign,NA,20
+PC,guess-correlation-5,windowEvents,NA,20
+PC,guess-correlation-6,stat_guess,NA,20
+PC,guess-correlation-6,stat_guess_initial,NA,20
+PC,guess-correlation-6,stat_guess_sign,NA,20
+PC,guess-correlation-6,windowEvents,NA,20
+PC,guess-correlation-7,stat_guess,NA,20
+PC,guess-correlation-7,stat_guess_initial,NA,20
+PC,guess-correlation-7,stat_guess_sign,NA,20
+PC,guess-correlation-7,windowEvents,NA,20
+PC,guess-correlation-8,stat_guess,NA,20
+PC,guess-correlation-8,stat_guess_initial,NA,20
+PC,guess-correlation-8,stat_guess_sign,NA,20
+PC,guess-correlation-8,windowEvents,NA,20
+PC,guess-correlation-9,stat_guess,NA,20
+PC,guess-correlation-9,stat_guess_initial,NA,20
+PC,guess-correlation-9,stat_guess_sign,NA,20
+PC,guess-correlation-9,windowEvents,NA,20
+PC,guess-slope,break,NA,20
+PC,guess-slope,windowEvents,NA,20
+PC,guess-slope-1,stat_guess,NA,20
+PC,guess-slope-1,stat_guess_initial,NA,20
+PC,guess-slope-1,stat_guess_sign,NA,20
+PC,guess-slope-1,windowEvents,NA,20
+PC,guess-slope-2,stat_guess,NA,20
+PC,guess-slope-2,stat_guess_initial,NA,20
+PC,guess-slope-2,stat_guess_sign,NA,20
+PC,guess-slope-2,windowEvents,NA,20
+PC,guess-slope-3,stat_guess,NA,20
+PC,guess-slope-3,stat_guess_initial,NA,20
+PC,guess-slope-3,stat_guess_sign,NA,20
+PC,guess-slope-3,windowEvents,NA,20
+PC,guess-slope-4,stat_guess,NA,20
+PC,guess-slope-4,stat_guess_initial,NA,20
+PC,guess-slope-4,stat_guess_sign,NA,20
+PC,guess-slope-4,windowEvents,NA,20
+PC,guess-slope-5,stat_guess,NA,20
+PC,guess-slope-5,stat_guess_initial,NA,20
+PC,guess-slope-5,stat_guess_sign,NA,20
+PC,guess-slope-5,windowEvents,NA,20
+PC,guess-slope-6,stat_guess,NA,20
+PC,guess-slope-6,stat_guess_initial,NA,20
+PC,guess-slope-6,stat_guess_sign,NA,20
+PC,guess-slope-6,windowEvents,NA,20
+PC,guess-slope-7,stat_guess,NA,20
+PC,guess-slope-7,stat_guess_initial,NA,20
+PC,guess-slope-7,stat_guess_sign,NA,20
+PC,guess-slope-7,windowEvents,NA,20
+PC,interest-survey-intro,break,NA,20
+PC,interest-survey-intro,windowEvents,NA,20
+PC,intro,windowEvents,NA,20
+PC,intro,NA,NA,20
+PC,maintainedSituationalInterest,msi_enjoyed_learning,How much have you enjoyed learning about correlation and slope?,20
+PC,maintainedSituationalInterest,msi_excited,"Now please rate how you feel about the topics you encountered in this session.
+
+How excited are you about correlation and slope?",20
+PC,maintainedSituationalInterest,msi_interesting_corrslope,How interesting do you find correlation and slope?,20
+PC,maintainedSituationalInterest,msi_interesting_stats,How interesting do you find statistics?,20
+PC,maintainedSituationalInterest,windowEvents,NA,20
+PC,participantTags,participantTags,NA,20
+PC,plotwise-video,video_done,NA,20
+PC,plotwise-video,windowEvents,NA,20
+PC,practice-solutions,practice_solutions_viewed,NA,20
+PC,practice-solutions,windowEvents,NA,20
+PC,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",20
+PC,pre questions,q-class-taken,Have you ever taken a statistics class?,20
+PC,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20
+PC,pre questions,q-correlation,"In your own words, please describe what a correlation is:",20
+PC,pre questions,q-grade,"If yes, what grade did you get in the class?",20
+PC,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",20
+PC,pre questions,q-slope,"In your own words, please describe what a slope is:",20
+PC,pre questions,windowEvents,NA,20
+PC,reflect,break,NA,20
+PC,reflect,windowEvents,NA,20
+PC,thinkaloud,windowEvents,NA,20
+PC,thinkaloud,NA,NA,20
+PC,triggeredSituationalInterest,tsi_boring_video,The correlation and slope video was boring,20
+PC,triggeredSituationalInterest,tsi_enjoyed_learning,I've enjoyed learning new things,20
+PC,triggeredSituationalInterest,tsi_enjoyed_session,I've enjoyed this session,20
+PC,triggeredSituationalInterest,tsi_fun_stats,It's been fun to learn about statistics this way,20
+PC,triggeredSituationalInterest,tsi_fun_video,It was fun to watch the video,20
+PC,triggeredSituationalInterest,tsi_session_boring,This session has been boring,20
+PC,triggeredSituationalInterest,tsi_session_fun,This session has been fun,20
+PC,triggeredSituationalInterest,tsi_session_interesting,This session has been interesting,20
+PC,triggeredSituationalInterest,windowEvents,NA,20
+PC,video-instruction,windowEvents,NA,20
+PC,video-instruction,NA,NA,20
+PP,$screen-recording.components.screenRecordingPermission,screenRecordingPermission,Screen recording enabled,20
+PP,$screen-recording.components.screenRecordingPermission,windowEvents,NA,20
+PP,add-points,break,NA,20
+PP,add-points,windowEvents,NA,20
+PP,add-points-1,add_points,NA,20
+PP,add-points-1,windowEvents,NA,20
+PP,add-points-2,add_points,NA,20
+PP,add-points-2,windowEvents,NA,20
+PP,add-points-3,add_points,NA,20
+PP,add-points-3,windowEvents,NA,20
+PP,after-watch,windowEvents,NA,20
+PP,after-watch,NA,NA,20
+PP,assessment intro,additional-questions,NA,20
+PP,assessment intro,windowEvents,NA,20
+PP,assessment questions part one,q-correlation,"In your own words, please describe what a correlation is:",20
+PP,assessment questions part one,q-motivation,"You have now finished the learning part of the experiment. Next up we have some questions about what you learned and how you felt about the online lecture.
+
+But first,if there is time at the end, would you be interested in trying another problem?",20
+PP,assessment questions part one,q-slope,"In your own words, please describe what a slope is:",20
+PP,assessment questions part one,windowEvents,NA,20
+PP,assessment-guess-correlation,break,NA,20
+PP,assessment-guess-correlation,windowEvents,NA,20
+PP,assessment-guess-slope,break,NA,20
+PP,assessment-guess-slope,windowEvents,NA,20
+PP,choose-strongest-r-1,graph_choice,NA,20
+PP,choose-strongest-r-1,windowEvents,NA,20
+PP,choose-strongest-r-2,graph_choice,NA,20
+PP,choose-strongest-r-2,windowEvents,NA,20
+PP,compare-r,break,NA,20
+PP,compare-r,windowEvents,NA,20
+PP,connection-making,q-different,Please list as many ways slope and correlation are different as you can think of.,20
+PP,connection-making,q-same,Please list as many ways slope and correlation are the same as you can think of.,20
+PP,connection-making,switch-question-response-a,"Let’s say a researcher has a correlation of .5 and a slope of .25. If they switched X and Y.
+
+a. What would happen to the correlation?",20
+PP,connection-making,switch-question-response-b,b. What would happen to the slope?,20
+PP,connection-making,windowEvents,NA,20
+PP,consent,accept,Are you ready to continue?,20
+PP,consent,prolificId,Please enter your Prolific ID,20
+PP,consent,windowEvents,NA,20
+PP,futureInterestSurvey,interest_any_study,NA,20
+PP,futureInterestSurvey,interest_dynamic_vis_study,NA,20
+PP,futureInterestSurvey,interest_statistics_study,NA,20
+PP,futureInterestSurvey,windowEvents,NA,20
+PP,guess-correlation-1,stat_guess,NA,20
+PP,guess-correlation-1,stat_guess_initial,NA,20
+PP,guess-correlation-1,stat_guess_sign,NA,20
+PP,guess-correlation-1,windowEvents,NA,20
+PP,guess-correlation-10,stat_guess,NA,20
+PP,guess-correlation-10,stat_guess_initial,NA,20
+PP,guess-correlation-10,stat_guess_sign,NA,20
+PP,guess-correlation-10,windowEvents,NA,20
+PP,guess-correlation-11,stat_guess,NA,20
+PP,guess-correlation-11,stat_guess_initial,NA,20
+PP,guess-correlation-11,stat_guess_sign,NA,20
+PP,guess-correlation-11,windowEvents,NA,20
+PP,guess-correlation-2,stat_guess,NA,20
+PP,guess-correlation-2,stat_guess_initial,NA,20
+PP,guess-correlation-2,stat_guess_sign,NA,20
+PP,guess-correlation-2,windowEvents,NA,20
+PP,guess-correlation-3,stat_guess,NA,20
+PP,guess-correlation-3,stat_guess_initial,NA,20
+PP,guess-correlation-3,stat_guess_sign,NA,20
+PP,guess-correlation-3,windowEvents,NA,20
+PP,guess-correlation-4,stat_guess,NA,20
+PP,guess-correlation-4,stat_guess_initial,NA,20
+PP,guess-correlation-4,stat_guess_sign,NA,20
+PP,guess-correlation-4,windowEvents,NA,20
+PP,guess-correlation-5,stat_guess,NA,20
+PP,guess-correlation-5,stat_guess_initial,NA,20
+PP,guess-correlation-5,stat_guess_sign,NA,20
+PP,guess-correlation-5,windowEvents,NA,20
+PP,guess-correlation-6,stat_guess,NA,20
+PP,guess-correlation-6,stat_guess_initial,NA,20
+PP,guess-correlation-6,stat_guess_sign,NA,20
+PP,guess-correlation-6,windowEvents,NA,20
+PP,guess-correlation-7,stat_guess,NA,20
+PP,guess-correlation-7,stat_guess_initial,NA,20
+PP,guess-correlation-7,stat_guess_sign,NA,20
+PP,guess-correlation-7,windowEvents,NA,20
+PP,guess-correlation-8,stat_guess,NA,20
+PP,guess-correlation-8,stat_guess_initial,NA,20
+PP,guess-correlation-8,stat_guess_sign,NA,20
+PP,guess-correlation-8,windowEvents,NA,20
+PP,guess-correlation-9,stat_guess,NA,20
+PP,guess-correlation-9,stat_guess_initial,NA,20
+PP,guess-correlation-9,stat_guess_sign,NA,20
+PP,guess-correlation-9,windowEvents,NA,20
+PP,guess-slope-1,stat_guess,NA,20
+PP,guess-slope-1,stat_guess_initial,NA,20
+PP,guess-slope-1,stat_guess_sign,NA,20
+PP,guess-slope-1,windowEvents,NA,20
+PP,guess-slope-2,stat_guess,NA,20
+PP,guess-slope-2,stat_guess_initial,NA,20
+PP,guess-slope-2,stat_guess_sign,NA,20
+PP,guess-slope-2,windowEvents,NA,20
+PP,guess-slope-3,stat_guess,NA,20
+PP,guess-slope-3,stat_guess_initial,NA,20
+PP,guess-slope-3,stat_guess_sign,NA,20
+PP,guess-slope-3,windowEvents,NA,20
+PP,guess-slope-4,stat_guess,NA,20
+PP,guess-slope-4,stat_guess_initial,NA,20
+PP,guess-slope-4,stat_guess_sign,NA,20
+PP,guess-slope-4,windowEvents,NA,20
+PP,guess-slope-5,stat_guess,NA,20
+PP,guess-slope-5,stat_guess_initial,NA,20
+PP,guess-slope-5,stat_guess_sign,NA,20
+PP,guess-slope-5,windowEvents,NA,20
+PP,guess-slope-6,stat_guess,NA,20
+PP,guess-slope-6,stat_guess_initial,NA,20
+PP,guess-slope-6,stat_guess_sign,NA,20
+PP,guess-slope-6,windowEvents,NA,20
+PP,guess-slope-7,stat_guess,NA,20
+PP,guess-slope-7,stat_guess_initial,NA,20
+PP,guess-slope-7,stat_guess_sign,NA,20
+PP,guess-slope-7,windowEvents,NA,20
+PP,interest-survey-intro,break,NA,20
+PP,interest-survey-intro,windowEvents,NA,20
+PP,intro,windowEvents,NA,20
+PP,intro,NA,NA,20
+PP,maintainedSituationalInterest,msi_enjoyed_learning,How much have you enjoyed learning about correlation and slope?,20
+PP,maintainedSituationalInterest,msi_excited,"Now please rate how you feel about the topics you encountered in this session.
+
+How excited are you about correlation and slope?",20
+PP,maintainedSituationalInterest,msi_interesting_corrslope,How interesting do you find correlation and slope?,20
+PP,maintainedSituationalInterest,msi_interesting_stats,How interesting do you find statistics?,20
+PP,maintainedSituationalInterest,windowEvents,NA,20
+PP,paint-brush,plotwise_progress,NA,20
+PP,paint-brush,windowEvents,NA,20
+PP,participantTags,participantTags,NA,20
+PP,plotwise-video,video_done,NA,20
+PP,plotwise-video,windowEvents,NA,20
+PP,point-clicker,plotwise_progress,NA,20
+PP,point-clicker,windowEvents,NA,20
+PP,pre questions,q-class-level,"If yes, what is the highest level of a statistics class you have taken?",20
+PP,pre questions,q-class-taken,Have you ever taken a statistics class?,20
+PP,pre questions,q-class-time,"If yes, how long ago was your most recent statistics class?",20
+PP,pre questions,q-correlation,"In your own words, please describe what a correlation is:",20
+PP,pre questions,q-grade,"If yes, what grade did you get in the class?",20
+PP,pre questions,q-how-many,"If yes, how many statistics classes have you taken in total?",20
+PP,pre questions,q-slope,"In your own words, please describe what a slope is:",20
+PP,pre questions,windowEvents,NA,20
+PP,reflect,break,NA,20
+PP,reflect,windowEvents,NA,20
+PP,thinkaloud,windowEvents,NA,20
+PP,thinkaloud,NA,NA,20
+PP,triggeredSituationalInterest,tsi_boring_video,The correlation and slope video was boring,20
+PP,triggeredSituationalInterest,tsi_enjoyed_learning,I've enjoyed learning new things,20
+PP,triggeredSituationalInterest,tsi_enjoyed_session,I've enjoyed this session,20
+PP,triggeredSituationalInterest,tsi_fun_stats,It's been fun to learn about statistics this way,20
+PP,triggeredSituationalInterest,tsi_fun_video,It was fun to watch the video,20
+PP,triggeredSituationalInterest,tsi_session_boring,This session has been boring,20
+PP,triggeredSituationalInterest,tsi_session_fun,This session has been fun,20
+PP,triggeredSituationalInterest,tsi_session_interesting,This session has been interesting,20
+PP,triggeredSituationalInterest,windowEvents,NA,20
+PP,video-instruction,windowEvents,NA,20
+PP,video-instruction,NA,NA,20
